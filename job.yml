@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: consul-insert
-  namespace: {{ .Release.Namespace }}
+  namespace: default
   # labels:
   #   tier: backend
   #   app: memsql-schema
@@ -25,9 +25,9 @@ spec:
       restartPolicy: "Never"
       containers:
       - name: consul-insert
-        image: 2.7.17-alpine3.9
-        imagePullPolicy: {{ default "IfNotPresent" .Values.global.pullPolicy }}
-        command: ["python", "print 'hello world'"]
+        image: python:2.7.17-alpine3.9
+        imagePullPolicy: "IfNotPresent" 
+        command: ["python", "-c","print('hello world')"]
         envFrom:
         - configMapRef:
             name: global-env
