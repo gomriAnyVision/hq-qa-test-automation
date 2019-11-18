@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: consul-insert
+  namespace: {{ .Release.Namespace }}
+  # labels:
+  #   tier: backend
+  #   app: memsql-schema
+spec:
+  # backoffLimit: 3
+  #ttlSecondsAfterFinished: 600
+  template:
+    # metadata:
+      # labels:
+        # app: memsql-schema
+        # run: memsql-schema
+    spec:
+      # hostname: consul-insert
+      # nodeSelector:
+      #   backend: "true"
+      # imagePullSecrets:
+      #   - name: imagepullsecret
+      # restartPolicy: Never
+      # enableServiceLinks: false
+      containers:
+      - name: consul-insert
+        image: 2.7.17-alpine3.9
+        imagePullPolicy: {{ default "IfNotPresent" .Values.global.pullPolicy }}
+        command: ["python", "print 'hello world'"]
+      restartPolicy: Never
+      # - name: memsql-schema
+      #   image: "{{ if .Values.global.imageOverride.memsqlSchema }}{{ .Values.global.imageOverride.memsqlSchema }}{{else}}{{ default .Values.global.registry .Values.global.localRegistry }}{{ .Values.global.repository }}{{ .Values.memsqlSchema.imageName }}:{{ .Values.memsqlSchema.imageTag }}{{end}}"
+      #   imagePullPolicy: {{ default "IfNotPresent" .Values.global.pullPolicy }}
+      #   volumeMounts:
+      #   - name: tz-config
+      #     mountPath: /etc/localtime
+      #     readOnly: true
+      #   envFrom:
+      #   - configMapRef:
+      #       name: global-env
+        env:
+        - name: CONSUL_AGENT
+          value: "consul-server.{{ .Release.Namespace }}.svc.cluster.local"
+        - name: CONSUL_SERVER
+          value: "consul-server.{{ .Release.Namespace }}.svc.cluster.local"
+        # - name: DB_HOST
+        #   value: memsql.{{ .Release.Namespace }}.svc.cluster.local
+        # - name: DB_ACTION
+        #   value: update
+        # - name: DB
+        #   value: mysql
+        # - name: DB_NAME
+        #   value: tracks_db:1.23.0,reid_db:1.24.0
+      volumes:
+      - name: tz-config
+        hostPath:
+           path: /etc/localtime
+           type: File
+  backoffLimit: 4
