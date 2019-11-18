@@ -22,22 +22,15 @@ spec:
       #   - name: imagepullsecret
       # restartPolicy: Never
       # enableServiceLinks: false
+      restartPolicy: "Never"
       containers:
       - name: consul-insert
         image: 2.7.17-alpine3.9
         imagePullPolicy: {{ default "IfNotPresent" .Values.global.pullPolicy }}
         command: ["python", "print 'hello world'"]
-      restartPolicy: Never
-      # - name: memsql-schema
-      #   image: "{{ if .Values.global.imageOverride.memsqlSchema }}{{ .Values.global.imageOverride.memsqlSchema }}{{else}}{{ default .Values.global.registry .Values.global.localRegistry }}{{ .Values.global.repository }}{{ .Values.memsqlSchema.imageName }}:{{ .Values.memsqlSchema.imageTag }}{{end}}"
-      #   imagePullPolicy: {{ default "IfNotPresent" .Values.global.pullPolicy }}
-      #   volumeMounts:
-      #   - name: tz-config
-      #     mountPath: /etc/localtime
-      #     readOnly: true
-      #   envFrom:
-      #   - configMapRef:
-      #       name: global-env
+        envFrom:
+        - configMapRef:
+            name: global-env
         env:
         - name: CONSUL_AGENT
           value: "consul-server.{{ .Release.Namespace }}.svc.cluster.local"
