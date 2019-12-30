@@ -1,0 +1,16 @@
+{
+    "cloud": {
+    "site_internal_ip": "0.132.15.204",
+    "site_extarnel_ip": "35.195.7.50",
+    "hq_api_url": "hq-api.tls.ai",
+    "hq_url": "hq.tls.ai",
+    "consul_ip": "35.195.7.50"
+    },
+    "vm": {
+    "site_internal_ip": "a",
+    "site_extarnel_ip": "a",
+    "hq_api_url": "hq-api.tls.ai",
+    "hq_url": "hq.tls.ai",
+    "consul_ip": "a"
+    }
+}

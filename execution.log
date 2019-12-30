@@ -1,0 +1,195 @@
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and got FEATURE_TOGGLE_MASTER = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and got FEATURE_TOGGLE_MASTER = true
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and got FEATURE_TOGGLE_MASTER = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+test
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and got FEATURE_TOGGLE_MASTER = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+successfully added site with internal IP 10.138.0.29and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = true
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = true
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = true
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = true
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = true
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Successful logged in and got token
+Starting new HTTP connection (1): 35.233.195.148
+Connect to consul at 35.233.195.148 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.233.195.148
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
+Attempting to add site with payload: {'siteName': '', 'address': '', 'userName': '', 'password': '', 'host': 'http://10.138.0.29:3000', 'rmqConnString': 'amqp://10.138.0.29:5672', 'syncServiceUri': 'http://10.138.0.29:16180', 'title': 'site 10.138.0.29', 'storageUri': 'https://hq.tls.ai/r/35.233.195.148'}
+Starting new HTTPS connection (1): hq-api.tls.ai
+successfully added site with internal IP 10.138.0.29 and external IP 35.233.195.148
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTPS connection (1): hq-api.tls.ai
+Starting new HTTP connection (1): 35.195.7.50
+Connect to consul at 35.195.7.50 and get FEATURE_TOGGLE_MASTER value = false
+Starting new HTTP connection (1): 35.195.7.50
+Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
+Finished sleeping
