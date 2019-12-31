@@ -3,9 +3,8 @@ import json
 import os
 import base64
 import time
-import logging
-import sys
 import argparse
+from Utils import logger
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
@@ -16,16 +15,7 @@ class Utils(object):
             config = json.load(config_file)
         self.env_config = config[env]
 
-    def logger():
-        logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        file_handler = logging.FileHandler("execution.log")
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        logger.addHandler(file_handler)
-        return logger
+
 
 
 class HQ(object):
@@ -37,7 +27,7 @@ class HQ(object):
 
     def _login(self):
         res = requests.post('https://hq-api.tls.ai/master/login', data={'username': 'admin', 'password': 'admin'})
-        myLogger.info("Successful logged in and got token")
+        test_logger.info("Successful logged in and got token")
         return res.json()['token']
 
     def add_subject(self, image):
@@ -108,7 +98,7 @@ class HQ(object):
             "title": f"site {config['site_internal_ip']}",
             "storageUri": f"https://{config['hq_url']}/r/{config['site_extarnel_ip']}"
         }
-        myLogger.info(f"Attempting to add site with payload: {payload}")
+        test_logger.info(f"Attempting to add site with payload: {payload}")
         res = requests.post("https://hq-api.tls.ai/master/sites", headers=self.request_headers,
                             data=json.dumps(payload))
         return res
@@ -127,23 +117,24 @@ class HQ(object):
 
 
 if __name__ == '__main__':
+    Logger = logger.logger()
+    test_logger = Logger.get_logger()
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", help="Which env are you using vm/cloud", nargs=1)
     parser.parse_args()
     config = Utils('cloud').env_config
-    myLogger = Utils.logger()
     session = HQ()
     feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", config)
-    myLogger.info(f"Connect to consul at {config['consul_ip']} "
+    test_logger.info(f"Connect to consul at {config['consul_ip']} "
                   f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
     if feature_toggle_master_value == "false":
         session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", config)
-        myLogger.info(f"Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let "
+        test_logger.info(f"Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let "
                       f"API restart properly")
         time.sleep(60)
-        myLogger.info("Finished sleeping")
+        test_logger.info("Finished sleeping")
     session.add_site()
-    myLogger.info(f"successfully added site with internal IP {config['site_internal_ip']} "
+    test_logger.info(f"successfully added site with internal IP {config['site_internal_ip']} "
                   f"and external IP {config['site_extarnel_ip']}")
     # session.add_multiple_subjects()
     # session.add_subject()
