@@ -1,21 +1,12 @@
 import requests
 import json
-import os
 import base64
 import time
 import argparse
-from Utils import logger
+
+from Utils import logger, utils
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
-
-
-class Utils(object):
-    def __init__(self, env):
-        with open(os.path.abspath(os.path.join(__file__, '../config.json')), "rb") as config_file:
-            config = json.load(config_file)
-        self.env_config = config[env]
-
-
 
 
 class HQ(object):
@@ -118,11 +109,11 @@ class HQ(object):
 
 if __name__ == '__main__':
     Logger = logger.logger()
-    test_logger = Logger.get_logger()
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", help="Which env are you using vm/cloud", nargs=1)
-    parser.parse_args()
-    config = Utils('cloud').env_config
+    parser.add_argument("--env", help="Which env are you using vm/cloud")
+    args = parser.parse_args()
+    test_logger = Logger.get_logger()
+    config = utils.Utils(args.env)
     session = HQ()
     feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", config)
     test_logger.info(f"Connect to consul at {config['consul_ip']} "
@@ -137,6 +128,6 @@ if __name__ == '__main__':
     test_logger.info(f"successfully added site with internal IP {config['site_internal_ip']} "
                   f"and external IP {config['site_extarnel_ip']}")
     # session.add_multiple_subjects()
-    # session.add_subject()
-    # subject_ids = session.get_subject_ids()
+    session.add_subject()
+    subject_ids = session.get_subject_ids()
     # session.delete_suspects(subject_ids)
