@@ -113,7 +113,8 @@ if __name__ == '__main__':
     parser.add_argument("--env", help="Which env are you using vm/cloud")
     args = parser.parse_args()
     test_logger = Logger.get_logger()
-    config = utils.Utils(args.env)
+    Utils = utils.Utils(args.env)
+    config = Utils.get_config()
     session = HQ()
     feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", config)
     test_logger.info(f"Connect to consul at {config['consul_ip']} "
