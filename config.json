@@ -7,10 +7,10 @@
     "consul_ip": "35.195.7.50"
     },
     "vm": {
-    "site_internal_ip": "a",
-    "site_extarnel_ip": "a",
+    "site_internal_ip": "192.168.122.41",
+    "site_extarnel_ip": "192.168.122.41",
     "hq_api_url": "hq-api.tls.ai",
     "hq_url": "hq.tls.ai",
-    "consul_ip": "a"
+    "consul_ip": "192.168.122.41"
     }
 }

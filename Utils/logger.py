@@ -2,8 +2,9 @@ import logging
 import sys
 
 
-class logger(object):
-    #TODO: Logger shouldn't create a logger but only add the basic settings the logger, each file should create it's own log
+class Logger(object):
+    # TODO: Logger shouldn't create a logger but only add the basic settings the logger,
+    #  each file should create it's own log
     def __init__(self):
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.INFO)
