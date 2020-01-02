@@ -202,3 +202,15 @@ Current running VM's b' Id    Name                           State\n------------
 Initiated config with {'site_internal_ip': 'a', 'site_extarnel_ip': 'a', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': 'a'}
 Initiated config with {'site_internal_ip': '192.168.122.41', 'site_extarnel_ip': '192.168.122.41', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': '192.168.122.41'}
 Recei:qved the following args Namespace(add_multiple_subjects=False, add_single_subject=False, env='vm')
+Initiated config with {'site_internal_ip': '192.168.122.41', 'site_extarnel_ip': '192.168.122.41', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': '192.168.122.41'}
+Received the following args Namespace(add_multiple_subjects=False, add_single_subject=False, env='vm')
+Initiated config with {'site_internal_ip': '192.168.122.41', 'site_extarnel_ip': '192.168.122.41', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': '192.168.122.41'}
+Received the following args Namespace(add_multiple_subjects=False, add_single_subject=False, env='vm')
+Initiated config with {'site_internal_ip': '192.168.122.41', 'site_extarnel_ip': '192.168.122.41', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': '192.168.122.41'}
+Received the following args: Namespace(add_multiple_subjects=False, add_single_subject=False, env='vm')
+Initiated config with: {'site_internal_ip': '192.168.122.41', 'site_extarnel_ip': '192.168.122.41', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': '192.168.122.41'}
+Received the following args: Namespace(add_multiple_subjects=False, add_single_subject=False, env='vm')
+Initiated config with: {'site_internal_ip': '192.168.122.41', 'site_extarnel_ip': '192.168.122.41', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': '192.168.122.41'}
+Received the following args: Namespace(add_multiple_subjects=False, add_single_subject=False, env='vm')
+Attempting to Mongo on 192.168.122.41
+Attempting to Mongo on 192.168.122.41

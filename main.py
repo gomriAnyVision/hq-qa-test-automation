@@ -4,15 +4,35 @@ import base64
 import time
 import uuid
 
-from Utils import logger, utils
+from Utils.mongodb import Mongo
+from Utils.logger import Logger
+from Utils.utils import Utils
 from vm_management import VmManager
 
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
 
-class HQ(object):
 
+# def test_HQ_HA():
+#     while True:
+#         for vm in vm_list:
+#             while vm_count() != 3:
+#                 test_logger.info("Sleeping 10 seconds waiting for 3rd vm to be active")
+#                 sleep(10)
+#             add_site()
+#             add_subject()
+#             result = test_subject_appears_in_site()
+#             if result:
+#                 test_logger.info(f"Subject appear both on site and HQ")
+#             else:
+#                 test_logger.error(f"Subject failed to get to site IMPORT LOG DATA}")
+#             remove_site()
+#             start_vm(vm_name)
+
+
+class HQ(object):
+    # TODO: Think about soluations to checking request failers
     def __init__(self):
         self.request_headers = {
             'authorization': self._login()
@@ -58,8 +78,7 @@ class HQ(object):
             zip_to_import = zip_file.read()
         payload = {"groups": self.get_subject_group()}
         res = requests.post("https://hq-api.tls.ai/master/subjects/bulk", headers=self.request_headers,
-                            data=payload,
-                              files=dict(zip=zip_to_import))
+                            data=payload, files=dict(zip=zip_to_import))
         return res
 
     def get_subject_group(self, default=True):
@@ -78,7 +97,7 @@ class HQ(object):
         subject_ids = [subject_id['_id'] for subject_id in res.json()['results']]
         return subject_ids
 
-    def add_site(self):
+    def add_site(self, config):
         self.request_headers['Content-Type'] = "application/json; charset=utf-8"
         payload = {
             "siteName": "",
@@ -111,27 +130,31 @@ class HQ(object):
 
 if __name__ == '__main__':
     # TODO: Run test forever on or until set time
-    vm_manager = VmManager()
-    Logger = logger.Logger()
-    test_logger = Logger.get_logger()
-    Utils = utils.Utils()
+    Mongo = Mongo()
+    Utils = Utils()
+    Logger = Logger()
     args = Utils.get_args()
-    config = Utils.get_config(args.env)
-    test_logger.info(f"Initiated config with {config}")
-    test_logger.info(f"Received the following args {args}")
+    env_config = Utils.get_config(args.env)
+    test_logger = Logger.get_logger()
+    vm_manager = VmManager()
+    test_logger.info(f"Attempting to Mongo on {env_config['site_internal_ip']}")
+    mongo_client = Mongo.connect("root",)
+    test_logger.info(f"results of connection to mongo:{mongo_client}")
+    test_logger.info(f"Initiated config with: {env_config}")
+    test_logger.info(f"Received the following args: {args}")
     session = HQ()
-    feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", config)
-    test_logger.info(f"Connect to consul at {config['consul_ip']} "
+    feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", env_config)
+    test_logger.info(f"Connect to consul at {env_config['consul_ip']} "
                      f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
     if feature_toggle_master_value == "false":
-        session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", config)
+        session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", env_config)
         test_logger.info(f"Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let "
                          f"API restart properly")
         time.sleep(60)
         test_logger.info("Finished sleeping")
-    session.add_site()
-    test_logger.info(f"successfully added site with internal IP {config['site_internal_ip']} "
-                     f"and external IP {config['site_extarnel_ip']}")
+    session.add_site(env_config)
+    test_logger.info(f"successfully added site with internal IP {env_config['site_internal_ip']} "
+                     f"and external IP {env_config['site_extarnel_ip']}")
     # TODO: Add adds to function to control which test should run or consider intergrating pytest
     if args.add_multiple_subjects:
         session.add_multiple_subjects(args.add_multiple_subjects)

@@ -10,8 +10,8 @@ class Utils(object):
             config = json.load(config_file)
             self.env_config = config
 
-    def get_config(self, env):
-        return self.env_config[env]
+    def get_config(self, config_type):
+        return self.env_config[config_type]
 
     def get_args(self):
         parser = argparse.ArgumentParser()
