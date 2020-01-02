@@ -118,7 +118,7 @@ if __name__ == '__main__':
     args = Utils.get_args()
     config = Utils.get_config(args.env)
     test_logger.info(f"Initiated config with {config}")
-q    test_logger.info(f"Recei:qved the following args {args}")
+    test_logger.info(f"Recei:qved the following args {args}")
     session = HQ()
     feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", config)
     test_logger.info(f"Connect to consul at {config['consul_ip']} "
