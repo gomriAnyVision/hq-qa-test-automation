@@ -2,10 +2,11 @@ import requests
 import json
 import base64
 import time
-import argparse
+import uuid
 
 from Utils import logger, utils
 from vm_management import VmManager
+
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
@@ -34,7 +35,7 @@ class HQ(object):
         image_qm = subject_data['qm']
         self.request_headers['Content-Type'] = 'application/json; charset=utf-8'
         payload = {
-            'name': 'test894179834719823749',
+            'name': uuid.uuid1(),
             'description': 'something',
             'useCamerasThreshold': 'false',
             'searchBackwards': 'false',
@@ -109,33 +110,32 @@ class HQ(object):
 
 
 if __name__ == '__main__':
+    # TODO: Run test forever on or until set time
     vm_manager = VmManager()
-    Logger = logger.logger()
-    parser = argparse.ArgumentParser()
-    #TODO: Add defualt config path to the --env arg
-    parser.add_argument("--env", help="Which env are you using vm/cloud")
-    args = parser.parse_args()
+    Logger = logger.Logger()
     test_logger = Logger.get_logger()
-    Utils = utils.Utils(args.env)
-    config = Utils.get_config()
-    vm_list = vm_manager.exec_command(vm_manager.list_vms())
-    test_logger.info(f"Current running VM's {vm_list}")
+    Utils = utils.Utils()
+    args = Utils.get_args()
+    config = Utils.get_config(args.env)
     test_logger.info(f"Initiated config with {config}")
+q    test_logger.info(f"Recei:qved the following args {args}")
     session = HQ()
     feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", config)
     test_logger.info(f"Connect to consul at {config['consul_ip']} "
-                  f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
+                     f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
     if feature_toggle_master_value == "false":
         session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", config)
         test_logger.info(f"Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let "
-                      f"API restart properly")
+                         f"API restart properly")
         time.sleep(60)
         test_logger.info("Finished sleeping")
     session.add_site()
     test_logger.info(f"successfully added site with internal IP {config['site_internal_ip']} "
-                  f"and external IP {config['site_extarnel_ip']}")
-    #TODO: Add adds to control which test should run or consider intergrating pytest
-    #session.add_multiple_subjects()
-    session.add_subject()
+                     f"and external IP {config['site_extarnel_ip']}")
+    # TODO: Add adds to function to control which test should run or consider intergrating pytest
+    if args.add_multiple_subjects:
+        session.add_multiple_subjects(args.add_multiple_subjects)
+    if args.add_sinagle_subject:
+        session.add_subject(args.add_sinagle_subject)
     subject_ids = session.get_subject_ids()
     # session.delete_suspects(subject_ids)
