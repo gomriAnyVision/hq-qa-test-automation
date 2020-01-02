@@ -194,3 +194,7 @@ Starting new HTTP connection (1): 35.195.7.50
 Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
 Finished sleeping
 Initiated config with {'site_internal_ip': 'a', 'site_extarnel_ip': 'a', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': 'a'}
+Current running VM's b'/home/qa-machine/automation-helm\n'
+Initiated config with {'site_internal_ip': 'a', 'site_extarnel_ip': 'a', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': 'a'}
+Current running VM's b' Id    Name                           State\n----------------------------------------------------\n\n'
+Initiated config with {'site_internal_ip': 'a', 'site_extarnel_ip': 'a', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': 'a'}
