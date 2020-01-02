@@ -193,3 +193,4 @@ Connect to consul at 35.195.7.50 and get FEATURE_TOGGLE_MASTER value = false
 Starting new HTTP connection (1): 35.195.7.50
 Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let API restart properly
 Finished sleeping
+Initiated config with {'site_internal_ip': 'a', 'site_extarnel_ip': 'a', 'hq_api_url': 'hq-api.tls.ai', 'hq_url': 'hq.tls.ai', 'consul_ip': 'a'}

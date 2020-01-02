@@ -5,6 +5,7 @@ import time
 import argparse
 
 from Utils import logger, utils
+from vm_management import VmManager
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
@@ -57,7 +58,7 @@ class HQ(object):
         payload = {"groups": self.get_subject_group()}
         res = requests.post("https://hq-api.tls.ai/master/subjects/bulk", headers=self.request_headers,
                             data=payload,
-                            files=dict(zip=zip_to_import))
+                              files=dict(zip=zip_to_import))
         return res
 
     def get_subject_group(self, default=True):
@@ -108,13 +109,18 @@ class HQ(object):
 
 
 if __name__ == '__main__':
+    vm_manager = VmManager()
     Logger = logger.logger()
     parser = argparse.ArgumentParser()
+    #TODO: Add defualt config path to the --env arg
     parser.add_argument("--env", help="Which env are you using vm/cloud")
     args = parser.parse_args()
     test_logger = Logger.get_logger()
     Utils = utils.Utils(args.env)
     config = Utils.get_config()
+    vm_list = vm_manager.exec_command(vm_manager.list_vms())
+    test_logger.info(f"Current running VM's {vm_list}")
+    test_logger.info(f"Initiated config with {config}")
     session = HQ()
     feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", config)
     test_logger.info(f"Connect to consul at {config['consul_ip']} "
@@ -128,7 +134,8 @@ if __name__ == '__main__':
     session.add_site()
     test_logger.info(f"successfully added site with internal IP {config['site_internal_ip']} "
                   f"and external IP {config['site_extarnel_ip']}")
-    # session.add_multiple_subjects()
+    #TODO: Add adds to control which test should run or consider intergrating pytest
+    #session.add_multiple_subjects()
     session.add_subject()
     subject_ids = session.get_subject_ids()
     # session.delete_suspects(subject_ids)
