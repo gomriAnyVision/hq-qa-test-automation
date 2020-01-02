@@ -118,7 +118,7 @@ if __name__ == '__main__':
     test_logger = Logger.get_logger()
     Utils = utils.Utils(args.env)
     config = Utils.get_config()
-    vm_list = vm_manager.exec_command(vm_manager.vm_commands['list'])
+    vm_list = vm_manager.exec_command(vm_manager.list_vms())
     test_logger.info(f"Current running VM's {vm_list}")
     test_logger.info(f"Initiated config with {config}")
     session = HQ()

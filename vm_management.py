@@ -6,7 +6,7 @@ class VmManager(object):
         with subprocess.Popen(command.split(), stdout=subprocess.PIPE) as proc:
             return proc.stdout.read()
 
-    def list_vms(self, args):
+    def list_vms(self, args=""):
         return f"virsh list {args}"
 
     def force_shutdown_vm(self,vm):
