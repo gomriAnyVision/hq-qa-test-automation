@@ -2,7 +2,6 @@ import requests
 import json
 import base64
 import time
-import uuid
 
 from Utils.mongodb import Mongo
 from Utils.logger import Logger
@@ -55,7 +54,7 @@ class HQ(object):
         image_qm = subject_data['qm']
         self.request_headers['Content-Type'] = 'application/json; charset=utf-8'
         payload = {
-            'name': uuid.uuid1(),
+            'name': Utils.randomString(),
             'description': 'something',
             'useCamerasThreshold': 'false',
             'searchBackwards': 'false',
@@ -92,9 +91,12 @@ class HQ(object):
                             data=json.dumps(payload))
         return res
 
-    def get_subject_ids(self):
-        res = requests.get("https://hq-api.tls.ai/master/subjects", headers=self.request_headers)
+    def get_subject_ids(self, limit=500):
+        test_logger.info(f"Get the first {limit} Id's of subjects")
+        res = requests.get("https://hq-api.tls.ai/master/subjects", headers=self.request_headers,
+                           params={'limit': limit})
         subject_ids = [subject_id['_id'] for subject_id in res.json()['results']]
+        test_logger.info(f"Got id's of {len(subject_ids)}")
         return subject_ids
 
     def add_site(self, config):
@@ -138,27 +140,30 @@ if __name__ == '__main__':
     test_logger = Logger.get_logger()
     vm_manager = VmManager()
     test_logger.info(f"Attempting to Mongo on {env_config['site_internal_ip']}")
-    mongo_client = Mongo.connect("root",)
-    test_logger.info(f"results of connection to mongo:{mongo_client}")
+    if args.connect_to_hq_mongo:
+        mongo_client = Mongo.connect("root")
+        test_logger.info(f"results of connection to mongo:{mongo_client}")
     test_logger.info(f"Initiated config with: {env_config}")
     test_logger.info(f"Received the following args: {args}")
     session = HQ()
-    feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", env_config)
-    test_logger.info(f"Connect to consul at {env_config['consul_ip']} "
-                     f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
-    if feature_toggle_master_value == "false":
-        session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", env_config)
-        test_logger.info(f"Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let "
-                         f"API restart properly")
-        time.sleep(60)
-        test_logger.info("Finished sleeping")
-    session.add_site(env_config)
-    test_logger.info(f"successfully added site with internal IP {env_config['site_internal_ip']} "
-                     f"and external IP {env_config['site_extarnel_ip']}")
-    # TODO: Add adds to function to control which test should run or consider intergrating pytest
+    if args.run_site_tasks:
+        feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", env_config)
+        test_logger.info(f"Connect to consul at {env_config['consul_ip']} "
+                         f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
+        if feature_toggle_master_value == "false":
+            session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", env_config)
+            test_logger.info(f"Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let "
+                             f"API restart properly")
+            time.sleep(60)
+            test_logger.info("Finished sleeping")
+        session.add_site(env_config)
+        test_logger.info(f"successfully added site with internal IP {env_config['site_internal_ip']} "
+                         f"and external IP {env_config['site_extarnel_ip']}")
+        # TODO: Add adds to function to control which test should run or consider intergrating pytest
     if args.add_multiple_subjects:
         session.add_multiple_subjects(args.add_multiple_subjects)
-    if args.add_sinagle_subject:
-        session.add_subject(args.add_sinagle_subject)
-    subject_ids = session.get_subject_ids()
-    # session.delete_suspects(subject_ids)
+    if args.add_single_subject:
+        session.add_subject(args.add_single_subject)
+    if args.delete_all_subjects:
+        subject_ids = session.get_subject_ids()
+        session.delete_suspects(subject_ids)
