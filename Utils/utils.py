@@ -4,16 +4,27 @@ import argparse
 import string
 import random
 
+from Utils.logger import Logger
+
+DEFAULT_CONFIG = "config/config.json"
 
 class Utils(object):
     # TODO: config should receive a config file from args and have a default but never parse the path
     def __init__(self):
-        with open(os.path.abspath(os.path.join(__file__, '../../config.json')), "rb") as config_file:
-            config = json.load(config_file)
-            self.env_config = config
+        self.config = ""
+        with open(os.path.abspath(os.path.join(DEFAULT_CONFIG)), "rb") as config_json:
+            self.default_config = json.load(config_json)
+
+    def set_config(self, config_path):
+        if not os.path.exists(config_path):
+            # TODO: support default config file
+            return
+        with open(config_path, "rb") as config_file:
+            self.config = json.load(config_file)
+            return self.config
 
     def get_config(self, config_type):
-        return self.env_config[config_type]
+        return self.config[config_type]
 
     def get_args(self):
         parser = argparse.ArgumentParser()
@@ -30,6 +41,10 @@ class Utils(object):
                             required=False, default=False)
         parser.add_argument("--connect_to_hq_mongo", help="True - Attempt to connect to the mongo of the HQ",
                             required=False, default=False)
+        parser.add_argument("--config", help="Path to config file look at example file in config/config_example.json"
+                                             "to see what it should contain. config must be in the "
+                                             "config/{you're config}",
+                            required=False, default=os.path.abspath(os.path.join(__file__, '../../config.json')))
         return parser.parse_args()
 
     def randomString(self, string_length=10):

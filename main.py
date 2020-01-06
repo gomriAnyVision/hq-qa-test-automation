@@ -12,7 +12,6 @@ from vm_management import VmManager
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
 
-
 # def test_HQ_HA():
 #     while True:
 #         for vm in vm_list:
@@ -119,12 +118,12 @@ class HQ(object):
 
     def consul_set(self, key, value, config):
         data = value
-        res = requests.put(f"http://{config['consul_ip']}/v1/kv/{key}", data=data,
+        res = requests.put(f"http://{config['site_consul_ip']}/v1/kv/{key}", data=data,
                            auth=("admin", "Passw0rd123"))
         return res.json()
 
     def consul_get_one(self, key, config):
-        res = requests.get(f"http://{config['consul_ip']}/v1/kv/{key}",
+        res = requests.get(f"http://{config['site_consul_ip']}/v1/kv/{key}",
                            auth=("admin", "Passw0rd123"))
         decoded_res = base64.b64decode(res.json()[0]['Value']).decode("utf-8")
         return decoded_res
@@ -136,30 +135,33 @@ if __name__ == '__main__':
     Utils = Utils()
     Logger = Logger()
     args = Utils.get_args()
+    config = Utils.set_config(args.config)
     env_config = Utils.get_config(args.env)
     test_logger = Logger.get_logger()
     vm_manager = VmManager()
-    test_logger.info(f"Attempting to Mongo on {env_config['site_internal_ip']}")
     if args.connect_to_hq_mongo:
+        test_logger.info("Attempting to connect to  Mongo HQ on {}".format(env_config['site_consul_ip']))
         mongo_client = Mongo.connect("root")
         test_logger.info(f"results of connection to mongo:{mongo_client}")
     test_logger.info(f"Initiated config with: {env_config}")
     test_logger.info(f"Received the following args: {args}")
     session = HQ()
     if args.run_site_tasks:
-        feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", env_config)
-        test_logger.info(f"Connect to consul at {env_config['consul_ip']} "
-                         f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
-        if feature_toggle_master_value == "false":
-            session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", env_config)
-            test_logger.info(f"Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let "
-                             f"API restart properly")
-            time.sleep(60)
-            test_logger.info("Finished sleeping")
-        session.add_site(env_config)
-        test_logger.info(f"successfully added site with internal IP {env_config['site_internal_ip']} "
-                         f"and external IP {env_config['site_extarnel_ip']}")
-        # TODO: Add adds to function to control which test should run or consider intergrating pytest
+        for site in env_config:
+            feature_toggle_master_value = session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
+            test_logger.info(f"Connect to consul at {site['site_consul_ip']} "
+                             f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
+            if feature_toggle_master_value == "false":
+                session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
+                test_logger.info(f"Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let "
+                                 f"API restart properly")
+                time.sleep(60)
+                test_logger.info("Finished sleeping")
+
+            session.add_site(site)
+            test_logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
+                             f"and external IP {site['site_extarnel_ip']}")
+            # TODO: Add adds to function to control which test should run or consider intergrating pytest
     if args.add_multiple_subjects:
         session.add_multiple_subjects(args.add_multiple_subjects)
     if args.add_single_subject:
