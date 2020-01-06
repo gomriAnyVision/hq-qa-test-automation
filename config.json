@@ -2,7 +2,7 @@
     "cloud": {
         "site_internal_ip": "10.132.0.37",
         "site_extarnel_ip": "35.195.7.50",
-        "hq_api_url": "hq-api.tls.ai",
+        "hq_api_url": "hq-api.tls.sai",
         "hq_url": "hq.tls.ai",
         "site_consul_ip": "35.195.7.50",
         "mongo_replica_1":"",
@@ -14,7 +14,6 @@
         "site_extarnel_ip": "192.168.122.41",
         "hq_api_url": "hq-api.tls.ai",
         "hq_url": "hq.tls.ai",
-        "site_consul_ip": "192.168.122.41",
-
+        "site_consul_ip": "192.168.122.41"
     }
 }
