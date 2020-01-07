@@ -6,7 +6,7 @@ import time
 from Utils.mongodb import Mongo
 from Utils.logger import Logger
 from Utils.utils import Utils
-from vm_management import VmManager
+from vm_management import update_vm_status
 
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
@@ -138,7 +138,6 @@ if __name__ == '__main__':
     config = Utils.set_config(args.config)
     env_config = Utils.get_config(args.env)
     test_logger = Logger.get_logger()
-    vm_manager = VmManager()
     if args.connect_to_hq_mongo:
         test_logger.info("Attempting to connect to  Mongo HQ on {}".format(env_config['site_consul_ip']))
         mongo_client = Mongo.connect("root")
