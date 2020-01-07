@@ -1,3 +1,5 @@
+unix
+kvm
 pymongo
 ansible==2.5.1
 apache-libcloud==2.2.1
