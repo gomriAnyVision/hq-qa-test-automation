@@ -103,6 +103,7 @@ class HQ(object):
         test_logger.info(f"Attempting to add site with payload: {pformat(payload)}")
         res = requests.post("https://hq-api.tls.ai/master/sites", headers=self.request_headers,
                             data=json.dumps(payload))
+        assert res.status_code == 200
         return res.json()['_id']
 
     def consul_set(self, key, value, config):
@@ -127,13 +128,13 @@ if __name__ == '__main__':
     ssh_config = Utils.get_config('ssh')
     env_config = Utils.get_config(args.env)
     test_logger = Logger.get_logger()
-    if args.connect_to_hq_mongo:
-        # TODO: log the ip of the mongo your connecting to
-        test_logger.info("Attempting to connect to  Mongo HQ on {}")
-        hq_mongo_client = MongoDB()
-        mapi = hq_mongo_client.get_db('mapi')
-        print(hq_mongo_client.site_sync_status(mapi))
-        test_logger.info("results of connection to mongo:{}".format(hq_mongo_client))
+    # TODO: log the ip of the mongo your connecting to
+    test_logger.info("Attempting to connect to Mongo HQ on {}")
+    hq_mongo_client = MongoDB()
+    mapi = hq_mongo_client.get_db('mapi')
+    site_ids = hq_mongo_client.get_sites_id(mapi)
+    print(hq_mongo_client.site_sync_status(mapi))
+    test_logger.info("results of connection to mongo:{}".format(hq_mongo_client))
     test_logger.info(f"Initiated config with: {pformat(env_config)}")
     test_logger.info(f"Received the following args: {pformat(args)}")
     session = HQ()
@@ -160,7 +161,8 @@ if __name__ == '__main__':
         subject_ids = session.get_subject_ids()
         session.delete_suspects(subject_ids)
     if args.remove_site:
-        remove_site_from_hq = session.remove_site(site_id)
-        disconnect_site = disconnect_site_from_hq(env_config[0]['site_extarnel_ip'], ssh_config)
-        test_logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
-        test_logger.info(f"Delete site from site results: {disconnect_site}")
+        for site in site_ids:
+            remove_site_from_hq = session.remove_site(site)
+            disconnect_site = disconnect_site_from_hq(env_config['site_extarnel_ip'], ssh_config)
+            test_logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
+            test_logger.info(f"Delete site from site results: {disconnect_site}")

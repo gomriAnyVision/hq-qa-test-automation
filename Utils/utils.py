@@ -6,6 +6,7 @@ import random
 
 DEFAULT_CONFIG = "config/config.json"
 
+
 class Utils(object):
     # TODO: config should receive a config file from args and have a default but never parse the path
     def __init__(self):

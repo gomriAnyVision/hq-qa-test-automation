@@ -1,6 +1,8 @@
+from pprint import pprint
+
 import requests
 
-ALLOCATOR_IP = "192.168.20.58"
+ALLOCATOR_IP = "192.168.21.87"
 ALLOCATOR_URL = "http://{}:8080/vms".format(ALLOCATOR_IP)
 
 
@@ -17,5 +19,6 @@ def list_vms():
     return res.json()['vms']
 
 
-
-
+if __name__ == '__main__':
+    for vm in list_vms():
+        pprint(list_vms()[vm])

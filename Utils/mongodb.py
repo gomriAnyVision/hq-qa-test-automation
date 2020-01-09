@@ -26,3 +26,10 @@ class MongoDB(object):
 
     def get_db(self, db):
         return self.client[db]
+
+    def get_sites_id(self, db):
+        site_ids = []
+        site_list = self._get_list_sites(db)
+        for site in site_list:
+            site_ids.append(site['_id'])
+        return site_ids
