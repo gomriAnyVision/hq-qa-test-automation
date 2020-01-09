@@ -126,12 +126,13 @@ if __name__ == '__main__':
     args = Utils.get_args()
     config = Utils.set_config(args.config)
     ssh_config = Utils.get_config('ssh')
+    mongo_conig = Utils.get_config('mongo')
     env_config = Utils.get_config(args.env)
     test_logger = Logger.get_logger()
     # TODO: log the ip of the mongo your connecting to
     test_logger.info("Attempting to connect to Mongo HQ on {}")
-    hq_mongo_client = MongoDB(mongo_host_port_array=env_config['mongo_ip'],
-                              mongo_password=env_config['mongo_pass'])
+    hq_mongo_client = MongoDB(mongo_host_port_array=mongo_conig['hq_ip'],
+                              mongo_password=mongo_conig['hq_pass'])
     mapi = hq_mongo_client.get_db('mapi')
     site_ids = hq_mongo_client.get_sites_id(mapi)
     print(hq_mongo_client.site_sync_status(mapi))

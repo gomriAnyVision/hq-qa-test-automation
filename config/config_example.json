@@ -4,18 +4,14 @@
         "site_extarnel_ip": "",
         "hq_api_url": "",
         "hq_url": "",
-        "site_consul_ip": "",
-        "mongo_pass": "",
-        "mongo_ip": ""
+        "site_consul_ip": ""
     }],
     "vm": [{
         "site_internal_ip": "192.168.122.41",
         "site_extarnel_ip": "192.168.122.41",
         "hq_api_url": "hq-api.tls.ai",
         "hq_url": "hq.tls.ai",
-        "site_consul_ip": "192.168.122.41",
-        "mongo_pass": "",
-        "mongo_ip": ""
+        "site_consul_ip": "192.168.122.41"
     }],
     "ssh": {
         "username": "",
@@ -24,5 +20,11 @@
     },
     "allocator": {
         "ip": ""
+    },
+    "mongo": {
+        "hq_pass": "",
+        "hq_ip": "",
+        "site_pass": "",
+        "site_ip": ""
     }
 }
