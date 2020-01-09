@@ -147,9 +147,9 @@ if __name__ == '__main__':
                              f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
             if feature_toggle_master_value == "false":
                 session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
-                test_logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping 60 seconds to let "
+                test_logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping 120 seconds to let "
                                  f"API restart properly")
-                time.sleep(60)
+                time.sleep(120)
                 test_logger.info("Finished sleeping")
             site_id = session.add_site(site)
             test_logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
