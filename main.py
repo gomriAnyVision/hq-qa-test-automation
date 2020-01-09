@@ -165,6 +165,7 @@ if __name__ == '__main__':
         session.delete_suspects(subject_ids)
     if args.remove_site:
         for site in site_ids:
+            test_logger.info(f"Attempting to delete site: {site}")
             remove_site_from_hq = session.remove_site(site)
             disconnect_site = disconnect_site_from_hq(env_config, ssh_config)
             test_logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
