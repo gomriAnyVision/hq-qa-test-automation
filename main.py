@@ -165,6 +165,6 @@ if __name__ == '__main__':
     if args.remove_site:
         for site in site_ids:
             remove_site_from_hq = session.remove_site(site)
-            disconnect_site = disconnect_site_from_hq(env_config['site_extarnel_ip'], ssh_config)
+            disconnect_site = disconnect_site_from_hq(env_config, ssh_config)
             test_logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
             test_logger.info(f"Delete site from site results: {disconnect_site}")

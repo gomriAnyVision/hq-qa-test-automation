@@ -10,7 +10,7 @@ def disconnect_site_from_hq(site_config, ssh_config):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    ssh.connect(hostname=site_config['site_extarnel_ip'], username=ssh_config['username'],
+    ssh.connect(hostname=site_config[0]['site_extarnel_ip'], username=ssh_config['username'],
                 password=ssh_config['password'])
                 # key_filename=ssh_config['pem_path'])
     sftp = ssh.open_sftp()
