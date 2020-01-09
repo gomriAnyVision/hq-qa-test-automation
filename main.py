@@ -2,7 +2,7 @@ import requests
 import json
 import base64
 import time
-from pprint import pformat
+from pprint import pformat, pprint
 
 from Utils.mongodb import MongoDB
 from Utils.logger import Logger
@@ -85,7 +85,8 @@ class HQ(object):
 
     def remove_site(self, site_id):
         res = requests.delete(f"https://hq-api.tls.ai/master/sites/{site_id}", headers=self.request_headers)
-        return res
+        pprint(res.json())
+        return res.json()
 
     def add_site(self, config):
         self.request_headers['Content-Type'] = "application/json; charset=utf-8"
