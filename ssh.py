@@ -1,16 +1,16 @@
 import paramiko
 
-file_path = "/home/qa-machine/projects/hq-qa-test-automation/scripts/remove_from_site.sh"
-script_path = "remove_from_site.sh"
+file_path = "/scripts/disconnect_site_from_hq.sh"
+script_path = "disconnect_site_from_hq.sh"
 
 # TODO: support config to connect to the site and HQ
 
 
-def disconnect_site_from_hq(config=""):
+def disconnect_site_from_hq(site_config, ssh_config):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(hostname="35.205.55.158", username="anyvision-devops",
-                key_filename="/home/qa-machine/Downloads/anyvision-devops.pem")
+    ssh.connect(hostname=site_config['site_extarnel_ip'], username=ssh_config['username'],
+                key_filename=ssh_config['pem_path'])
     sftp = ssh.open_sftp()
     sftp.put(f"{file_path}",
              f"/tmp/{script_path}", confirm=True)

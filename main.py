@@ -124,6 +124,7 @@ if __name__ == '__main__':
     Logger = Logger()
     args = Utils.get_args()
     config = Utils.set_config(args.config)
+    ssh_config = Utils.get_config('ssh')
     env_config = Utils.get_config(args.env)
     test_logger = Logger.get_logger()
     if args.connect_to_hq_mongo:
@@ -160,6 +161,6 @@ if __name__ == '__main__':
         session.delete_suspects(subject_ids)
     if args.remove_site:
         remove_site_from_hq = session.remove_site(site_id)
-        disconnect_site = disconnect_site_from_hq()
+        disconnect_site = disconnect_site_from_hq(env_config[0]['site_extarnel_ip'], ssh_config)
         test_logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
         test_logger.info(f"Delete site from site results: {disconnect_site}")
