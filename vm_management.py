@@ -11,7 +11,7 @@ def update_vm_status(vm_name, power):
     return res.json()
 
 
-def _list_vms():
+def list_vms():
     res = requests.get(ALLOCATOR_URL)
     assert res.status_code == 200
     return res.json()['vms']
