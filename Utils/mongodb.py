@@ -26,9 +26,3 @@ class MongoDB(object):
 
     def get_db(self, db):
         return self.client[db]
-
-
-if __name__ == '__main__':
-    client = MongoDB()
-    mapi = client.get_db('mapi')
-    client.site_sync_status(mapi)
