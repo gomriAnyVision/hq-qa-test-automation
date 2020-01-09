@@ -23,7 +23,8 @@ class Utils(object):
             return self.config
 
     def get_config(self, config_type):
-        return self.config[config_type]
+        if not self.config:
+            return self.default_config[config_type]
 
     def get_args(self):
         parser = argparse.ArgumentParser()

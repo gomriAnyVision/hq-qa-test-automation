@@ -9,16 +9,18 @@
         "mongo_replica_2": "",
         "mongo_replica_3": ""
     }],
-    "vm": {
+    "vm": [{
         "site_internal_ip": "192.168.122.41",
         "site_extarnel_ip": "192.168.122.41",
         "hq_api_url": "hq-api.tls.ai",
         "hq_url": "hq.tls.ai",
         "site_consul_ip": "192.168.122.41"
-    },
+    }],
     "ssh": {
         "username": "",
         "pem_path": ""
     },
-    "allocator_ip": ""
+    "allocator": {
+        "ip": ""
+    }
 }
