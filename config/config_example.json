@@ -19,5 +19,6 @@
     "ssh": {
         "username": "",
         "pem_path": ""
-    }
+    },
+    "allocator_ip": ""
 }
