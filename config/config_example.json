@@ -18,7 +18,8 @@
     }],
     "ssh": {
         "username": "",
-        "pem_path": ""
+        "pem_path": "",
+        "password": ""
     },
     "allocator": {
         "ip": ""
