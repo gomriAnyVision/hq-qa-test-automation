@@ -2,31 +2,16 @@ import requests
 import json
 import base64
 import time
+from pprint import pformat
 
-from Utils.mongodb import Mongo
+from Utils.mongodb import MongoDB
 from Utils.logger import Logger
 from Utils.utils import Utils
+from ssh import disconnect_site_from_hq
 from vm_management import update_vm_status
 
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
-
-
-# def test_HQ_HA():
-#     while True:
-#         for vm in vm_list:
-#             while vm_count() != 3:
-#                 test_logger.info("Sleeping 10 seconds waiting for 3rd vm to be active")
-#                 sleep(10)
-#             add_site()
-#             add_subject()
-#             result = test_subject_appears_in_site()
-#             if result:
-#                 test_logger.info(f"Subject appear both on site and HQ")
-#             else:
-#                 test_logger.error(f"Subject failed to get to site IMPORT LOG DATA}")
-#             remove_site()
-#             start_vm(vm_name)
 
 
 class HQ(object):
@@ -98,6 +83,10 @@ class HQ(object):
         test_logger.info(f"Got id's of {len(subject_ids)}")
         return subject_ids
 
+    def remove_site(self, site_id):
+        res = requests.delete(f"https://hq-api.tls.ai/master/sites/{site_id}", headers=self.request_headers)
+        return res
+
     def add_site(self, config):
         self.request_headers['Content-Type'] = "application/json; charset=utf-8"
         payload = {
@@ -111,10 +100,10 @@ class HQ(object):
             "title": f"site {config['site_internal_ip']}",
             "storageUri": f"https://{config['hq_url']}/r/{config['site_extarnel_ip']}"
         }
-        test_logger.info(f"Attempting to add site with payload: {payload}")
+        test_logger.info(f"Attempting to add site with payload: {pformat(payload)}")
         res = requests.post("https://hq-api.tls.ai/master/sites", headers=self.request_headers,
                             data=json.dumps(payload))
-        return res
+        return res.json()['_id']
 
     def consul_set(self, key, value, config):
         data = value
@@ -131,7 +120,6 @@ class HQ(object):
 
 if __name__ == '__main__':
     # TODO: Run test forever on or until set time
-    Mongo = Mongo()
     Utils = Utils()
     Logger = Logger()
     args = Utils.get_args()
@@ -139,11 +127,14 @@ if __name__ == '__main__':
     env_config = Utils.get_config(args.env)
     test_logger = Logger.get_logger()
     if args.connect_to_hq_mongo:
-        test_logger.info("Attempting to connect to  Mongo HQ on {}".format(env_config['site_consul_ip']))
-        mongo_client = Mongo.connect("root")
-        test_logger.info(f"results of connection to mongo:{mongo_client}")
-    test_logger.info(f"Initiated config with: {env_config}")
-    test_logger.info(f"Received the following args: {args}")
+        # TODO: log the ip of the mongo your connecting to
+        test_logger.info("Attempting to connect to  Mongo HQ on {}")
+        hq_mongo_client = MongoDB()
+        mapi = hq_mongo_client.get_db('mapi')
+        print(hq_mongo_client.site_sync_status(mapi))
+        test_logger.info("results of connection to mongo:{}".format(hq_mongo_client))
+    test_logger.info(f"Initiated config with: {pformat(env_config)}")
+    test_logger.info(f"Received the following args: {pformat(args)}")
     session = HQ()
     if args.run_site_tasks:
         for site in env_config:
@@ -152,12 +143,11 @@ if __name__ == '__main__':
                              f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
             if feature_toggle_master_value == "false":
                 session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
-                test_logger.info(f"Changed FEATURE_TOGGLE_MASTER to true, sleeping 60 seconds to let "
+                test_logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping 60 seconds to let "
                                  f"API restart properly")
                 time.sleep(60)
                 test_logger.info("Finished sleeping")
-
-            session.add_site(site)
+            site_id = session.add_site(site)
             test_logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
                              f"and external IP {site['site_extarnel_ip']}")
             # TODO: Add adds to function to control which test should run or consider intergrating pytest
@@ -168,3 +158,8 @@ if __name__ == '__main__':
     if args.delete_all_subjects:
         subject_ids = session.get_subject_ids()
         session.delete_suspects(subject_ids)
+    if args.remove_site:
+        remove_site_from_hq = session.remove_site(site_id)
+        disconnect_site = disconnect_site_from_hq()
+        test_logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
+        test_logger.info(f"Delete site from site results: {disconnect_site}")

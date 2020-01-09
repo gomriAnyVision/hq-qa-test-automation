@@ -4,8 +4,6 @@ import argparse
 import string
 import random
 
-from Utils.logger import Logger
-
 DEFAULT_CONFIG = "config/config.json"
 
 class Utils(object):
@@ -29,22 +27,18 @@ class Utils(object):
     def get_args(self):
         parser = argparse.ArgumentParser()
         # TODO: Add default config path to the --env arg
-        parser.add_argument("--env", help="Which env are you using vm/cloud")
-        parser.add_argument("--add_multiple_subjects", help="Path to the image you want to add a single subject from",
-                            required=False, default=False)
-        parser.add_argument("--add_single_subject", help="Path of the zop to run the mass add multiple subjects from",
-                            required=False, default=False)
-        parser.add_argument("--delete_all_subjects", help="True - Delete all subjects from HQ",
-                            required=False, default=False)
+        parser.add_argument("--env", help="Which env are you using vm/cloud", required=True)
+        parser.add_argument("--add_multiple_subjects", help="Path to the image you want to add a single subject from")
+        parser.add_argument("--add_single_subject", help="Path of the zop to run the mass add multiple subjects from")
+        parser.add_argument("--delete_all_subjects", help="True - Delete all subjects from HQ")
         parser.add_argument("--run_site_tasks", help="True - Should the script attempt to connect a site and sync it"
-                                                     "(feature toggle master etc...)",
-                            required=False, default=False)
-        parser.add_argument("--connect_to_hq_mongo", help="True - Attempt to connect to the mongo of the HQ",
-                            required=False, default=False)
+                                                     "(feature toggle master etc...)")
+        parser.add_argument("--connect_to_hq_mongo", help="True - Attempt to connect to the mongo of the HQ")
         parser.add_argument("--config", help="Path to config file look at example file in config/config_example.json"
                                              "to see what it should contain. config must be in the "
                                              "config/{you're config}",
-                            required=False, default=os.path.abspath(os.path.join(__file__, '../../config.json')))
+                            default=os.path.abspath(os.path.join(__file__, '../../config/config.json')))
+        parser.add_argument("--remove_site", help="True - Deletes site")
         return parser.parse_args()
 
     def randomString(self, string_length=10):
