@@ -17,7 +17,5 @@ def _list_vms():
     return res.json()['vms']
 
 
-if __name__ == '__main__':
-    update_vm_status("golan-vm-0", "off")
 
 
