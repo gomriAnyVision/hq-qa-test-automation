@@ -1,7 +1,11 @@
 from pprint import pprint
-import requests
 
+import googleapiclient
+import requests
+from googleapiclient import discovery
 from Utils.utils import Utils
+
+service = googleapiclient.discovery.build('compute', 'v1')
 
 
 def _get_allocator_ip():
@@ -28,6 +32,20 @@ def list_vms():
     return res.json()['vms']
 
 
-if __name__ == '__main__':
-    for vm in list_vms():
-        pprint(list_vms()[vm])
+def list_machines_gcp(zone="europe-west1-d"):
+    result = service.instances().list(project="anyvision-training", zone=zone, ).execute()
+    return result['items'] if 'items' in result else None
+
+# TODO: get the name and zone of the machines to update dynamically
+def stop_gcp_machine(name, zone):
+    request = service.instances().stop(project="anyvision-training", zone=zone,
+                                       instance=name)
+    response = request.execute()
+    pprint(response)
+
+
+def start_gcp_machine(name, zone):
+    request = service.instances().start(project="anyvision-training", zone=zone,
+                                        instance=name)
+    response = request.execute()
+    pprint(response)

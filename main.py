@@ -2,13 +2,12 @@ import requests
 import json
 import base64
 import time
-from pprint import pformat, pprint
+from pprint import pformat
 
 from Utils.mongodb import MongoDB
 from Utils.logger import Logger
 from Utils.utils import Utils
 from ssh import disconnect_site_from_hq
-from vm_management import update_vm_status
 
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
@@ -138,7 +137,7 @@ if __name__ == '__main__':
     print(hq_mongo_client.site_sync_status(mapi))
     test_logger.info("results of connection to mongo:{}".format(hq_mongo_client))
     test_logger.info(f"Initiated config with: {pformat(env_config)}")
-    test_logger.info(f"Received the following args: {pformat(args)}")
+    test_logger.info(f"Received the following args: {args}")
     session = HQ()
     if args.run_site_tasks:
         for site in env_config:
@@ -147,9 +146,9 @@ if __name__ == '__main__':
                              f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master_value}")
             if feature_toggle_master_value == "false":
                 session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
-                test_logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping 120 seconds to let "
+                test_logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping 60 seconds to let "
                                  f"API restart properly")
-                time.sleep(120)
+                time.sleep(60)
                 test_logger.info("Finished sleeping")
             site_id = session.add_site(site)
             test_logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
@@ -167,5 +166,5 @@ if __name__ == '__main__':
             test_logger.info(f"Attempting to delete site: {site}")
             remove_site_from_hq = session.remove_site(site)
             disconnect_site = disconnect_site_from_hq(env_config, ssh_config)
-            test_logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
+            test_logger.info(f"Delete site from HQ results: {pformat(remove_site_from_hq)}")
             test_logger.info(f"Delete site from site results: {disconnect_site}")
