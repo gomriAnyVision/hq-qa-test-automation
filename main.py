@@ -129,13 +129,16 @@ if __name__ == '__main__':
     env_config = Utils.get_config(args.env)
     test_logger = Logger.get_logger()
     # TODO: log the ip of the mongo your connecting to
-    test_logger.info(f"Attempting to connect to Mongo HQ on {mongo_config}")
-    hq_mongo_client = MongoDB(mongo_host_port_array=mongo_config['hq_ip'],
-                              mongo_password=mongo_config['hq_pass'])
+    test_logger.info(f"Attempting to connect to Mongo HQ using: {pformat(mongo_config)}")
+    hq_mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
+                              mongo_user=mongo_config['hq_user'],
+                              mongo_host_port_array=mongo_config['mongo_service_name'])
+    test_logger.info("results of connection to mongo:{}".format(hq_mongo_client))
     mapi = hq_mongo_client.get_db('mapi')
     site_ids = hq_mongo_client.get_sites_id(mapi)
-    print(hq_mongo_client.site_sync_status(mapi))
-    test_logger.info("results of connection to mongo:{}".format(hq_mongo_client))
+    test_logger.info(f"Found the following site ids in the HQ mongo:{pformat(site_ids)}")
+    sites_sync_status = hq_mongo_client.site_sync_status(mapi)
+    test_logger.info(f"Sites sync status is: {pformat(sites_sync_status)}")
     test_logger.info(f"Initiated config with: {pformat(env_config)}")
     test_logger.info(f"Received the following args: {args}")
     session = HQ()

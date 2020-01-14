@@ -2,9 +2,16 @@ from pymongo import MongoClient
 from urllib.parse import quote_plus
 
 
+"""
+In order to know  which mongo to connect to you must add all mongo 
+replicas ips to the the /etc/hosts for example:
+<Mongo replica 0 ip>		mongodb.replicaset-0.mongodb-replicaset
+<Mongo replica 1 ip>		mongodb.replicaset-1.mongodb-replicaset
+<Mongo replica 2 ip>		mongodb.replicaset-2.mongodb-replicaset
+"""
+
 class MongoDB(object):
-    def __init__(self, mongo_user="root", mongo_password="NjMxNmQ3MTBjNGVjNGZlZDRhYzc0NjU2"
-                , mongo_host_port_array="34.76.123.137"
+    def __init__(self, mongo_user="", mongo_password="", mongo_host_port_array=""
                 , mongo_db="mapi", mongo_auth_db='admin', rs='rs0'):
         uri = f"mongodb://{quote_plus(mongo_user)}:{quote_plus(mongo_password)}@{mongo_host_port_array}/{mongo_db}?authSource={mongo_auth_db}"
         self.client = MongoClient(uri, w=1, journal=True, replicaSet=rs)

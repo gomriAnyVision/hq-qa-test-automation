@@ -18,7 +18,7 @@ def _get_allocator_url():
     return "http://{}:8080/vms".format(_get_allocator_ip())
 
 
-def update_vm_status(vm_name, power, config):
+def update_vm_status(vm_name, power):
     request_url = "http://{}:8080/vms/{}/status".format(_get_allocator_ip(), vm_name)
     res = requests.post(request_url, data={"power": power})
     assert res.status_code == 200
@@ -32,8 +32,9 @@ def list_vms():
     return res.json()['vms']
 
 
-def list_machines_gcp(zone="europe-west1-d"):
-    result = service.instances().list(project="anyvision-training", zone=zone, ).execute()
+def list_machines_gcp(zone="europe-west1-d", filter_by=""):
+    result = service.instances().list(project="anyvision-training", zone=zone,
+                                      filter=filter_by).execute()
     return result['items'] if 'items' in result else None
 
 # TODO: get the name and zone of the machines to update dynamically
