@@ -10,6 +10,7 @@ from Utils.logger import Logger
 from Utils.utils import Utils
 from ssh import disconnect_site_from_hq
 from socketio_client import verify_mass_import_event, verify_recognition_event
+from site_api import play_forensic
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
@@ -172,3 +173,8 @@ if __name__ == '__main__':
             disconnect_site = disconnect_site_from_hq(env_config, ssh_config)
             test_logger.info(f"Delete site from HQ results: {pformat(remove_site_from_hq)}")
             test_logger.info(f"Delete site from site results: {disconnect_site}")
+    # TODO: Verify this test works once the sites are able to sync
+    if args.recognition_event:
+        play_forensic(env_config)
+        verify_recognition_event()
+
