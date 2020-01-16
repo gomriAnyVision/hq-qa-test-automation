@@ -1,0 +1,74 @@
+{
+  "files": {
+    "name": "1 file",
+    "loaded": 0,
+    "total": 0,
+    "percent": 0,
+    "speed": 0,
+    "dateCreated": 1579184901279,
+    "dateUIUpdated": 1579184901279,
+    "fileNames": [
+      "subject_recognition.mp4"
+    ],
+    "videoUrls": [
+      "https://api.default.svc.cluster.local:5443/html/pipe_store/video/15791849016651731062.mp4"
+    ],
+    "done": true
+  },
+  "cameras": [
+    {
+      "detection_type": "face",
+      "gpu_device_id": 0,
+      "setting_show_preview": null,
+      "setting_downscale_selector": false,
+      "setting_threshold": "0.550",
+      "forensic_priority": 1,
+      "setting_tracker_dist_tol": null,
+      "setting_tracker_min_length": null,
+      "setting_tracker_timeout": null,
+      "video_urls": [
+        "https://api.default.svc.cluster.local:5443/html/pipe_store/video/15791849016651731062.mp4"
+      ],
+      "frames_to_keep": null,
+      "detector_min_face_size": null,
+      "detector_scaler": null,
+      "detector": null,
+      "max_face_buffer_size": null,
+      "max_wait_period": null,
+      "detector_pyramid_factor": null,
+      "detector_proposal_net_thresh": null,
+      "detector_refine_net_thresh": null,
+      "detector_output_net_thresh": null,
+      "debug_progress": null,
+      "debug_progress_skip_frames": 0,
+      "detector_margin": null,
+      "detector_margin_frame_type": "default",
+      "ffmpeg_reencoding": "false",
+      "preview_downscale": null,
+      "frame_allowed_rotation": null,
+      "copy_camera_timestamp": null,
+      "date": {
+        "year": 2020,
+        "month": 1,
+        "day": 16,
+        "hours": 16,
+        "minutes": 28,
+        "seconds": 56
+      },
+      "camera_group": {
+        "_id": "000000000000000000000002",
+        "all_suspect_groups": true,
+        "suspect_groups": [],
+        "camera_group_mode": "black",
+        "title": "Default Camera Group",
+        "map_path": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD//9k=",
+        "__v": 0
+      },
+      "blurring": false,
+      "camera_type": "forensic",
+      "map_top_percent": null,
+      "map_left_percent": null,
+      "created_date": 1579184936000
+    }
+  ]
+}

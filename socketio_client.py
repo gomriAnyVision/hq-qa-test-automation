@@ -3,10 +3,11 @@ import threading
 import time
 
 sio = socketio.Client()
+
 HOST = "https://hq-api.tls.ai:443/"
+SUBJECTS_IMPORTED = 10
 
 event_count = {}
-subject_imported = 10
 
 
 def _connect_to_socket_and_wait():
@@ -29,13 +30,13 @@ def on_connect():
 
 @sio.on("mass_import_events_completed")
 def on_mass_mass_import_completed(*args):
-    global subject_imported
+    global SUBJECTS_IMPORTED
     global event_count
     event_count['mass_import_events_completed'] = 1
     try:
-        assert f"{subject_imported} were new and inserted to the database" in args[0]
+        assert f"{SUBJECTS_IMPORTED} were new and inserted to the database" in args[0]
     except AssertionError:
-        print(f"Expected {subject_imported} to be imported but only {args[0]}")
+        print(f"Expected {SUBJECTS_IMPORTED} to be imported but only {args[0]}")
 
 
 @sio.on("new_recognition")
@@ -63,7 +64,7 @@ def verify_mass_import_event(session, args, logger, sleep=5):
     socket_thread = threading.Thread(target=_connect_to_socket_and_wait)
     socket_thread.setDaemon(True)
     socket_thread.start()
-    logger.info(f"Expected {subject_imported} inserted from mass import ")
+    logger.info(f"Expecting {SUBJECTS_IMPORTED} subjects to be inserted via mass import ")
     session.add_multiple_subjects(args.add_multiple_subjects)
     time.sleep(sleep)
     try:
