@@ -1,3 +1,4 @@
+import threading
 import requests
 import json
 import base64
@@ -8,7 +9,7 @@ from Utils.mongodb import MongoDB
 from Utils.logger import Logger
 from Utils.utils import Utils
 from ssh import disconnect_site_from_hq
-
+from socketio_client import verify_mass_import_event, verify_recognition_event
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
@@ -158,7 +159,7 @@ if __name__ == '__main__':
                              f"and external IP {site['site_extarnel_ip']}")
             # TODO: Add adds to function to control which test should run or consider intergrating pytest
     if args.add_multiple_subjects:
-        session.add_multiple_subjects(args.add_multiple_subjects)
+        verify_mass_import_event(session, args, test_logger, sleep=5)
     if args.add_single_subject:
         session.add_subject(args.add_single_subject)
     if args.delete_all_subjects:
