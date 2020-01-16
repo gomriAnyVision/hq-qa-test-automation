@@ -24,7 +24,7 @@ class HQ(object):
 
     def _login(self):
         res = requests.post('https://hq-api.tls.ai/master/login', data={'username': 'admin', 'password': 'admin'})
-        test_logger.info("Successful logged in and got token")
+        assert res.status_code == 200
         return res.json()['token']
 
     def add_subject(self, image):
@@ -136,7 +136,7 @@ if __name__ == '__main__':
                               mongo_user=mongo_config['hq_user'],
                               mongo_host_port_array=mongo_config['mongo_service_name'])
     test_logger.info("results of connection to mongo:{}".format(hq_mongo_client))
-    mapi = hq_mongo_client.get_db('mapi')
+    mapi = hq_mongo_client._get_db('mapi')
     site_ids = hq_mongo_client.get_sites_id(mapi)
     test_logger.info(f"Found the following site ids in the HQ mongo:{pformat(site_ids)}")
     sites_sync_status = hq_mongo_client.site_sync_status(mapi)
@@ -177,4 +177,3 @@ if __name__ == '__main__':
     if args.recognition_event:
         play_forensic(env_config)
         verify_recognition_event()
-

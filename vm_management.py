@@ -3,6 +3,7 @@ from pprint import pprint
 import googleapiclient
 import requests
 from googleapiclient import discovery
+
 from Utils.utils import Utils
 
 service = googleapiclient.discovery.build('compute', 'v1')
@@ -50,3 +51,14 @@ def start_gcp_machine(name, zone):
                                         instance=name)
     response = request.execute()
     pprint(response)
+
+
+def get_gcp_machine(name, zone):
+    request = service.instances().get(project="anyvision-training", zone=zone,
+                                      instance=name)
+    response = request.execute()
+    pprint(response["status"])
+
+
+if __name__ == '__main__':
+    get_gcp_machine("omri-hq-ha-3-i-europe-west1-d-1", "europe-west1-d")

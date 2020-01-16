@@ -27,11 +27,12 @@ class MongoDB(object):
         return db.subjects.count()
 
     def site_sync_status(self, db):
+        db = self._get_db("mapi")
         site_list = self._get_list_sites(db)
         for site in site_list:
             return site['syncStatus'], site['_id']
 
-    def get_db(self, db):
+    def _get_db(self, db):
         return self.client[db]
 
     def get_sites_id(self, db):
