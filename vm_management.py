@@ -10,8 +10,8 @@ service = googleapiclient.discovery.build('compute', 'v1')
 
 
 class MachineManagement(object):
-    def __init__(self, machine_mgnt_service):
-        self.service = machine_mgnt_service
+    def __init__(self, machine_mgmt_service):
+        self.service = machine_mgmt_service
 
     def stop(self, name):
         return self.service.stop(name)
@@ -23,7 +23,7 @@ class MachineManagement(object):
         return self.service.get(name)
 
 
-class VmMgnt(object):
+class VmMgmt(object):
 
     def _get_allocator_ip(self):
         Util = Utils()
@@ -46,7 +46,7 @@ class VmMgnt(object):
         return res.json()['vms']
 
 
-class GcpInstanceMgnt(object):
+class GcpInstanceMgmt(object):
     def __init__(self, project="anyvision-training", zone=""):
         self.project = project
         self.zone = zone
@@ -75,10 +75,5 @@ class GcpInstanceMgnt(object):
         response = request.execute()
         pprint(response["status"])
 
-
-if __name__ == '__main__':
-    gcp_instance_mgnt = GcpInstanceMgnt(zone="us-west1-b")
-    machine_mgnt = MachineManagement(gcp_instance_mgnt)
-    machine_mgnt.stop("aharon-hq-ha-d-us-west1-b-2")
 
 

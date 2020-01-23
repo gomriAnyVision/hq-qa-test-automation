@@ -1,4 +1,3 @@
-import threading
 import requests
 import json
 import base64
@@ -27,11 +26,11 @@ class HQ(object):
         assert res.status_code == 200
         return res.json()['token']
 
-    def add_subject(self, image):
+    def add_subject(self, image="assets/subject.jpeg"):
         with open(image, 'rb') as image_object:
             image_to_upload = image_object.read()
-        res = requests.post('https://hq-api.tls.ai/master/subjects/faces-from-image', headers=self.request_headers,
-                            files=dict(images=image_to_upload))
+        res = requests.post('https://hq-api.tls.ai/master/subjects/faces-from-image',
+                            headers=self.request_headers, files=dict(images=image_to_upload))
         # TODO: Find a better way to extract the subject data from the response
         subject_data = res.json()['data'][0]['results'][0]
         features = subject_data['Features']
@@ -39,7 +38,7 @@ class HQ(object):
         image_qm = subject_data['qm']
         self.request_headers['Content-Type'] = 'application/json; charset=utf-8'
         payload = {
-            'name': Utils.randomString(),
+            'name': Utils().randomString(),
             'description': 'something',
             'useCamerasThreshold': 'false',
             'searchBackwards': 'false',
@@ -77,16 +76,17 @@ class HQ(object):
         return res
 
     def get_subject_ids(self, limit=500):
-        test_logger.info(f"Get the first {limit} Id's of subjects")
         res = requests.get("https://hq-api.tls.ai/master/subjects", headers=self.request_headers,
                            params={'limit': limit})
         subject_ids = [subject_id['_id'] for subject_id in res.json()['results']]
-        test_logger.info(f"Got id's of {len(subject_ids)}")
         return subject_ids
 
     def remove_site(self, site_id):
-        res = requests.delete(f"https://hq-api.tls.ai/master/sites/{site_id}", headers=self.request_headers)
-        return res.json()
+        if len(site_id) > 0:
+            res = requests.delete(f"https://hq-api.tls.ai/master/sites/{site_id[0]}", headers=self.request_headers)
+            return res.json()
+        else:
+            return
 
     def add_site(self, config):
         self.request_headers['Content-Type'] = "application/json; charset=utf-8"
@@ -96,12 +96,12 @@ class HQ(object):
             "userName": "",
             "password": "",
             "host": f"http://{config['site_internal_ip']}:3000",
-            "rmqConnString": f"amqp://{config['site_internal_ip']}:5672",
+            "rmqConnString": f"amqp://{config['site_internal_ip']}:5673",
             "syncServiceUri": f"http://{config['site_internal_ip']}:16180",
             "title": f"site {config['site_internal_ip']}",
             "storageUri": f"https://{config['hq_url']}/r/{config['site_extarnel_ip']}"
         }
-        test_logger.info(f"Attempting to add site with payload: {pformat(payload)}")
+        # test_logger.info(f"Attempting to add site withth payload: {pformat(payload)}")
         res = requests.post("https://hq-api.tls.ai/master/sites", headers=self.request_headers,
                             data=json.dumps(payload))
         assert res.status_code == 200

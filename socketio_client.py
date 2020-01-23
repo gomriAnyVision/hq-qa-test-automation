@@ -75,7 +75,7 @@ def verify_mass_import_event(session, args, logger, sleep=5):
     socket_thread.join()
 
 
-def verify_recognition_event(logger, sleep=5):
+def verify_recognition_event(logger, sleep=20):
     """
     Executes the add single subject task and verify the subject is created in the site by verify an event
     is received when the subject is recognized

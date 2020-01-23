@@ -3,7 +3,7 @@ import requests
 
 
 def _upload_video(config):
-    files = {"files": open("./subject_recognition.mp4", "rb")}
+    files = {"files": open("./assets/subject_recognition.mp4", "rb")}
     res = requests.post(f"http://{config[0]['site_extarnel_ip']}:3000/video-sources/video/file", files=files)
     return res.json()["data"][0]
 
@@ -20,3 +20,4 @@ def play_forensic(config, threshold=0.05):
                             data=json.dumps(payload))
         assert 200
         return res
+
