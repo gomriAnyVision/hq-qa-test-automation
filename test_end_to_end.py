@@ -33,7 +33,6 @@ if __name__ == '__main__':
     ssh_config = Utils.get_config('ssh')
     logger.info(f"Received config: {pformat(ssh_config)}")
     # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
-    # logger.info(f"Setup the gcp_instance_mgmt service with args {machines_info['zone']} ")
     machine_mgmt = MachineManagement(VmMgmt())
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     while True:
@@ -56,8 +55,14 @@ if __name__ == '__main__':
                 logger.info(f"Attempting to delete site: {site}")
                 sites_id = mongo_client.get_sites_id()
                 remove_site_from_hq = hq_session.remove_site(sites_id)
-                disconnect_site = disconnect_site_from_hq(env_config, ssh_config)
-                delete_hq_pod(env_config[0], ssh_config)
+                disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
+                                                          username=env_config[0]['username'],
+                                                          password=env_config[0]['password'],
+                                                          pem_path=env_config[0]['pem_path'])
+                delete_hq_pod(hostname=env_config[0]['hq_ip'],
+                              username=env_config[0]['username'],
+                              password=env_config[0]['password'],
+                              pem_path=env_config[0]['pem_path'])
                 logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
                 logger.info(f"Delete site from site results: {disconnect_site}")
                 # Attempting to add site again after deletion
@@ -92,7 +97,10 @@ if __name__ == '__main__':
             for site in env_config:
                 logger.info(f"Attempting to delete site: {site}")
                 remove_site_from_hq = hq_session.remove_site(site)
-                disconnect_site = disconnect_site_from_hq(env_config, ssh_config)
+                disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
+                                                          username=env_config[0]['username'],
+                                                          password=env_config[0]['password'],
+                                                          pem_path=env_config[0]['pem_path'])
                 logger.info(f"Delete site from HQ results: {pformat(remove_site_from_hq)}")
                 logger.info(f"Delete site from site results: {disconnect_site}")
 
