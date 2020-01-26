@@ -6,15 +6,16 @@ from Utils.logger import Logger
 from Utils.utils import Utils
 from ssh import disconnect_site_from_hq, delete_hq_pod
 from main import HQ
-from vm_management import MachineManagement, GcpInstanceMgmt
+from vm_management import MachineManagement, GcpInstanceMgmt, VmMgmt
 from socketio_client import verify_recognition_event, on_mass_mass_import_completed
 from site_api import play_forensic
 
 
 machines_info = {
     "hq_machines": [
-        "aharon-hq-ha-d-us-west1-b-1",
-        "aharon-hq-ha-d-us-west1-b-2"
+        "server5-vm-0",
+        "server5-vm-1",
+        "server5-vm-2"
     ],
     "zone": "us-west1-b"
 }
@@ -31,15 +32,15 @@ if __name__ == '__main__':
     logger.info(f"Received config: {pformat(env_config)}")
     ssh_config = Utils.get_config('ssh')
     logger.info(f"Received config: {pformat(ssh_config)}")
-    gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
-    logger.info(f"Setup the gcp_instance_mgmt service with args {machines_info['zone']} ")
-    machine_mgmt = MachineManagement(gcp_instance_mgmt)
+    # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
+    # logger.info(f"Setup the gcp_instance_mgmt service with args {machines_info['zone']} ")
+    machine_mgmt = MachineManagement(VmMgmt())
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     while True:
         for machine in machines_info["hq_machines"]:
             machine_mgmt.stop(machine)
             logger.info(f"Stopping {machine}")
-            while machine_mgmt.get(machine) == "RUNNING":
+            while machine_mgmt.get(machine) == "on":
                 logger.info(f"{machine} is still up even though it should have stopped sleeping "
                             f"for another 10 seconds")
                 time.sleep(10)

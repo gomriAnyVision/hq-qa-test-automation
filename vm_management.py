@@ -1,3 +1,4 @@
+import json
 from pprint import pprint
 
 import googleapiclient
@@ -24,7 +25,6 @@ class MachineManagement(object):
 
 
 class VmMgmt(object):
-
     def _get_allocator_ip(self):
         Util = Utils()
         config = Util.get_config('allocator')
@@ -33,11 +33,24 @@ class VmMgmt(object):
     def _get_allocator_url(self):
         return "http://{}:8080/vms".format(self._get_allocator_ip())
 
-    def update_vm_status(self, vm_name, power):
-        request_url = "http://{}:8080/vms/{}/status".format(self._get_allocator_ip(), vm_name)
-        res = requests.post(request_url, data={"power": power})
+    def start(self, name):
+        request_url = "http://{}:8080/vms/{}/status".format(self._get_allocator_ip(), name)
+        res = requests.post(request_url, data=json.dumps({"power": "on"}))
         assert res.status_code == 200
         return res.json()
+
+    def stop(self, name):
+        request_url = "http://{}:8080/vms/{}/status".format(self._get_allocator_ip(), name)
+        res = requests.post(request_url, data=json.dumps({"power": "off"}))
+        return res
+
+    def get(self, name):
+        request_url = "http://{}:8080/vms/{}".format(self._get_allocator_ip(), name)
+        res = requests.get(request_url)
+        if res.status_code == 200:
+            return res.json()['info']['status']
+        else:
+            return res
 
     def list_vms(self):
         allocator_url = self._get_allocator_url()
