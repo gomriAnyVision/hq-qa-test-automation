@@ -30,8 +30,6 @@ if __name__ == '__main__':
     logger.info(f"Received config: {pformat(mongo_config)}")
     env_config = Utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")
-    ssh_config = Utils.get_config('ssh')
-    logger.info(f"Received config: {pformat(ssh_config)}")
     # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
     machine_mgmt = MachineManagement(VmMgmt())
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
