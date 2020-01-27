@@ -20,6 +20,10 @@ def disconnect_site_from_hq(**config):
     print(stdout.readlines())
 
 
+def get_hq_ip(ips, ip_of_stoped):
+    ips.remove(ip_of_stoped)
+    return ips[0]
+
 def delete_hq_pod(**config):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())

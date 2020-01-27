@@ -4,11 +4,17 @@ import time
 from Utils.mongodb import MongoDB
 from Utils.logger import Logger
 from Utils.utils import Utils
-from ssh import disconnect_site_from_hq, delete_hq_pod
+from ssh import disconnect_site_from_hq, delete_hq_pod, get_hq_ip
 from main import HQ
 from vm_management import MachineManagement, GcpInstanceMgmt, VmMgmt
 from socketio_client import verify_recognition_event, on_mass_mass_import_completed
 from site_api import play_forensic
+
+hq_machines = {
+    "server5-vm-0": "192.168.122.186",
+    "server5-vm-1": "192.168.122.38",
+    "server5-vm-2": "192.168.122.190"
+}
 
 
 machines_info = {
@@ -34,16 +40,17 @@ if __name__ == '__main__':
     machine_mgmt = MachineManagement(VmMgmt())
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     while True:
-        for machine in machines_info["hq_machines"]:
+        for machine in hq_machines.items():
+            running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
             machine_mgmt.stop(machine)
             logger.info(f"Stopping {machine}")
             while machine_mgmt.get(machine) == "on":
                 logger.info(f"{machine} is still up even though it should have stopped sleeping "
                             f"for another 10 seconds")
                 time.sleep(10)
-            sleep_after_stopping_node = 180
-            logger.info(f"Sleeping for {sleep_after_stopping_node} seconds after stopping node {machine}")
-            time.sleep(sleep_after_stopping_node)
+            # sleep_after_stopping_node = 180
+            # logger.info(f"Sleeping for {sleep_after_stopping_node} seconds after stopping node {machine}")
+            # time.sleep(sleep_after_stopping_node)
             hq_session = HQ()
             for site in env_config:
                 # Deleting site before trying to add it again
@@ -57,7 +64,7 @@ if __name__ == '__main__':
                                                           username=env_config[0]['username'],
                                                           password=env_config[0]['password'],
                                                           pem_path=env_config[0]['pem_path'])
-                delete_hq_pod(hostname=env_config[0]['hq_ip'],
+                delete_hq_pod(hq_ip=env_config[0]['hq_ip'],
                               username=env_config[0]['username'],
                               password=env_config[0]['password'],
                               pem_path=env_config[0]['pem_path'])
@@ -82,12 +89,12 @@ if __name__ == '__main__':
             while not sync_status['status'] == "synced":
                 time.sleep(10)
                 sync_status = mongo_client.site_sync_status()
-            # hq_session.add_subject()
+            hq_session.add_subject()
             print(len(hq_session.get_subject_ids()))
             try:
                 logger.info("Subject added from HQ to site")
                 logger.info("Playing forensic video in order to create recognition event in HQ")
-                # play_forensic()
+                play_forensic()
                 logger.info("Connecting to HQ dashboard socketio waiting for recognition event")
                 verify_recognition_event(logger, sleep=60)
             except:
