@@ -66,7 +66,7 @@ if __name__ == '__main__':
                                                           username=env_config[0]['ssh']['username'],
                                                           password=env_config[0]['ssh']['password'],
                                                           pem_path=env_config[0]['ssh']['pem_path'])
-                delete_hq_pod(hq_ip=env_config[0]['hq_ip'],
+                delete_hq_pod(hq_ip=running_hq_node_ip,
                               username=env_config[0]['ssh']['username'],
                               password=env_config[0]['ssh']['password'],
                               pem_path=env_config[0]['ssh']['pem_path'])
