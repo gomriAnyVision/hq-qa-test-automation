@@ -40,11 +40,13 @@ if __name__ == '__main__':
     machine_mgmt = MachineManagement(VmMgmt())
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     while True:
-        for machine in hq_machines.items():
+        for machine, ip in hq_machines.items():
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
             machine_mgmt.stop(machine)
             logger.info(f"Stopping {machine}")
             while machine_mgmt.get(machine) == "on":
+                if machine_mgmt.get(machine).status_code == 500:
+                    break
                 logger.info(f"{machine} is still up even though it should have stopped sleeping "
                             f"for another 10 seconds")
                 time.sleep(10)
@@ -61,13 +63,13 @@ if __name__ == '__main__':
                 sites_id = mongo_client.get_sites_id()
                 remove_site_from_hq = hq_session.remove_site(sites_id)
                 disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
-                                                          username=env_config[0]['username'],
-                                                          password=env_config[0]['password'],
-                                                          pem_path=env_config[0]['pem_path'])
+                                                          username=env_config[0]['ssh']['username'],
+                                                          password=env_config[0]['ssh']['password'],
+                                                          pem_path=env_config[0]['ssh']['pem_path'])
                 delete_hq_pod(hq_ip=env_config[0]['hq_ip'],
-                              username=env_config[0]['username'],
-                              password=env_config[0]['password'],
-                              pem_path=env_config[0]['pem_path'])
+                              username=env_config[0]['ssh']['username'],
+                              password=env_config[0]['ssh']['password'],
+                              pem_path=env_config[0]['ssh']['pem_path'])
                 logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
                 logger.info(f"Delete site from site results: {disconnect_site}")
                 # Attempting to add site again after deletion
