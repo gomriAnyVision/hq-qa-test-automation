@@ -17,15 +17,6 @@ hq_machines = {
 }
 
 
-machines_info = {
-    "hq_machines": [
-        "server5-vm-0",
-        "server5-vm-1",
-        "server5-vm-2"
-    ],
-    "zone": "us-west1-b"
-}
-
 if __name__ == '__main__':
     Logger = Logger()
     Utils = Utils()
@@ -50,11 +41,12 @@ if __name__ == '__main__':
                 logger.info(f"{machine} is still up even though it should have stopped sleeping "
                             f"for another 10 seconds")
                 time.sleep(10)
-            # sleep_after_stopping_node = 180
-            # logger.info(f"Sleeping for {sleep_after_stopping_node} seconds after stopping node {machine}")
-            # time.sleep(sleep_after_stopping_node)
+
             hq_session = HQ()
             for site in env_config:
+                sleep_after_stopping_node = 180
+                logger.info(f"Sleeping for {sleep_after_stopping_node} seconds after stopping node {machine}")
+                time.sleep(sleep_after_stopping_node)
                 # Deleting site before trying to add it again
                 mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
                                        mongo_user=mongo_config['hq_user'],

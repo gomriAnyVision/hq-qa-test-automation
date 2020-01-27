@@ -7,8 +7,6 @@ from googleapiclient import discovery
 
 from Utils.utils import Utils
 
-service = googleapiclient.discovery.build('compute', 'v1')
-
 
 class MachineManagement(object):
     def __init__(self, machine_mgmt_service):
@@ -61,30 +59,31 @@ class VmMgmt(object):
 
 class GcpInstanceMgmt(object):
     def __init__(self, project="anyvision-training", zone=""):
+        self.service = googleapiclient.discovery.build('compute', 'v1')
         self.project = project
         self.zone = zone
 
     def list(self, zone="europe-west1-d", filter_by=""):
-        result = service.instances().list(project="anyvision-training", zone=zone,
+        result = self.service.instances().list(project="anyvision-training", zone=zone,
                                           filter=filter_by).execute()
         return result['items'] if 'items' in result else None
 
     # TODO: get the name and zone of the machines to update dynamically
     def stop(self, name):
-        request = service.instances().stop(project=self.project, zone=self.zone,
-                                           instance=name)
+        request = self.service.instances().stop(project=self.project, zone=self.zone,
+                                                instance=name)
         response = request.execute()
         pprint(response)
 
     def start(self, name):
-        request = service.instances().start(project=self.project, zone=self.zone,
-                                            instance=name)
+        request = self.service.instances().start(project=self.project, zone=self.zone,
+                                                 instance=name)
         response = request.execute()
         pprint(response)
 
     def get(self, name):
-        request = service.instances().get(project=self.project, zone=self.zone,
-                                          instance=name)
+        request = self.service.instances().get(project=self.project, zone=self.zone,
+                                               instance=name)
         response = request.execute()
         pprint(response["status"])
 

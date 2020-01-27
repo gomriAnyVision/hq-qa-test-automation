@@ -3,7 +3,6 @@ import paramiko
 file_path = "scripts/disconnect_site_from_hq.sh"
 script_path = "disconnect_site_from_hq.sh"
 
-# TODO: support config to connect to the site and HQ
 # TODO: Find to know if your running on cloud or VM without user input
 
 def disconnect_site_from_hq(**config):
@@ -23,6 +22,7 @@ def disconnect_site_from_hq(**config):
 def get_hq_ip(ips, ip_of_stoped):
     ips.remove(ip_of_stoped)
     return ips[0]
+
 
 def delete_hq_pod(**config):
     ssh = paramiko.SSHClient()
