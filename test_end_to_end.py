@@ -33,7 +33,6 @@ if __name__ == '__main__':
     failed_to_add_site_counter = 0
     iteration_number = 0
     while True:
-        iteration_number += 1
         logger.info(f"successfully iteration: {iteration_number}\n "
                     f"Failed iteration: {failed_to_add_site_counter}")
         for machine, ip in hq_machines.items():
@@ -145,4 +144,13 @@ if __name__ == '__main__':
             sleep_after_starting_machine = 180
             logger.info(f"Sleeping {sleep_after_starting_machine} seconds after machine {machine} starts")
             time.sleep(sleep_after_starting_machine)
+            iteration_number += 1
             logger.info(f"Finished iteration: {iteration_number}")
+
+
+
+
+
+
+
+
