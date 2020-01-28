@@ -86,16 +86,17 @@ if __name__ == '__main__':
             while not sync_status['status'] == "synced":
                 time.sleep(10)
                 sync_status = mongo_client.site_sync_status()
-            hq_session.add_subject()
+            if args.add_single_subject:
+                hq_session.add_subject()
+                logger.info("Subject added from HQ to site")
             print(len(hq_session.get_subject_ids()))
             try:
-                logger.info("Subject added from HQ to site")
                 logger.info("Playing forensic video in order to create recognition event in HQ")
                 play_forensic()
                 logger.info("Connecting to HQ dashboard socketio waiting for recognition event")
                 verify_recognition_event(logger, sleep=60)
             except:
-                logger.error("Failed to add subject from hq to site")
+                logger.error("Failed to get event from HQ")
             for site in env_config:
                 logger.info(f"Attempting to delete site: {site}")
                 remove_site_from_hq = hq_session.remove_site(site)
@@ -105,11 +106,10 @@ if __name__ == '__main__':
                                                           pem_path=env_config[0]['pem_path'])
                 logger.info(f"Delete site from HQ results: {pformat(remove_site_from_hq)}")
                 logger.info(f"Delete site from site results: {disconnect_site}")
-
-                machine_mgmt.start(machine)
+            machine_mgmt.start(machine)
             logger.info(f"Starting {machine} back utilsp")
             machine_current_state = machine_mgmt.get(machine_mgmt)
-            while not machine_current_state == "RUNNING":
+            while not machine_current_state == "RUNNING" or "on":
                 logger.info(f"sleeping 10 seconds waiting for {machine} to start")
                 time.sleep(10)
                 machine_current_state = machine_mgmt.get(machine)
