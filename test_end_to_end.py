@@ -77,7 +77,6 @@ if __name__ == '__main__':
                     logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping {sleep_after_toggle_feature}"
                                 f" seconds to let "
                                 f"API restart properly")
-                    time.sleep(60)
                     logger.info("Finished sleeping")
                 site_id = hq_session.add_site(site)
                 logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
@@ -87,6 +86,7 @@ if __name__ == '__main__':
                 time.sleep(10)
                 sync_status = mongo_client.site_sync_status()
             if args.add_single_subject:
+                time.sleep(60)
                 hq_session.add_subject()
                 logger.info("Subject added from HQ to site")
             print(len(hq_session.get_subject_ids()))
@@ -99,7 +99,8 @@ if __name__ == '__main__':
                 logger.error("Failed to get event from HQ")
             for site in env_config:
                 logger.info(f"Attempting to delete site: {site}")
-                remove_site_from_hq = hq_session.remove_site(site)
+                sites_id = mongo_client.get_sites_id()
+                remove_site_from_hq = hq_session.remove_site(sites_id)
                 disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
                                                           username=env_config[0]['username'],
                                                           password=env_config[0]['password'],
