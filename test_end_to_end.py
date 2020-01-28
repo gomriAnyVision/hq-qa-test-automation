@@ -30,9 +30,12 @@ if __name__ == '__main__':
     # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
     machine_mgmt = MachineManagement(VmMgmt())
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
+    failed_to_add_site_counter = 0
     iteration_number = 0
     while True:
         iteration_number += 1
+        logger.info(f"successfully iteration: {iteration_number}\n "
+                    f"Failed iteration: {failed_to_add_site_counter}")
         for machine, ip in hq_machines.items():
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
             machine_mgmt.stop(machine)
@@ -84,14 +87,26 @@ if __name__ == '__main__':
                                pem_path=env_config[0]['ssh']['pem_path'],
                                pod_name="site")
                     logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping {sleep_after_toggle_feature}"
-                                f" seconds to let "
-                                f"API restart properly")
+                                f" seconds to let API restart properly")
                     logger.info("Finished sleeping")
                 if is_service_available(env_config[0]["site_extarnel_ip"], 3000) \
                         and is_service_available(env_config[0]["site_extarnel_ip"], 16180):
-                    site_id = hq_session.add_site(site)
-                    logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
-                                f"and external IP {site['site_extarnel_ip']}")
+                    try:
+                        site_id = hq_session.add_site(site)
+                        logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
+                                    f"and external IP {site['site_extarnel_ip']}")
+                    except:
+                        logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']}"
+                                     f"Attempting to run the automation again")
+                        machine_current_state = machine_mgmt.get(machine)
+                        while not machine_current_state == "on":
+                            logger.info(f"sleeping 10 seconds waiting for {machine} to start")
+                            time.sleep(10)
+                            machine_current_state = machine_mgmt.get(machine)
+                            print(machine_current_state)
+                        sleep_after_starting_machine = 180
+                        failed_to_add_site_counter += 1
+                        continue
             sync_status = {"status": ""}
             while not sync_status['status'] == "synced":
                 time.sleep(10)
