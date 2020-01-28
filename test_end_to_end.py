@@ -40,8 +40,8 @@ if __name__ == '__main__':
                             f"for another 10 seconds")
                 time.sleep(10)
             hq_session = HQ()
+            sleep_after_stopping_node = 90
             for site in env_config:
-                sleep_after_stopping_node = 180
                 logger.info(f"Sleeping for {sleep_after_stopping_node} seconds after stopping node {machine}")
                 time.sleep(sleep_after_stopping_node)
                 # Deleting site before trying to add it again
