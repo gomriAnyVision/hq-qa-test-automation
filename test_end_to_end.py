@@ -8,7 +8,7 @@ from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip
 from main import HQ
 from vm_management import MachineManagement, GcpInstanceMgmt, VmMgmt
 from socketio_client import verify_recognition_event, on_mass_mass_import_completed
-from site_api import play_forensic, is_api_available
+from site_api import play_forensic, is_service_available
 
 hq_machines = {
     "server5-vm-0": "192.168.122.186",
@@ -87,7 +87,8 @@ if __name__ == '__main__':
                                 f" seconds to let "
                                 f"API restart properly")
                     logger.info("Finished sleeping")
-                if is_api_available(env_config[0]["site_extarnel_ip"]):
+                if is_service_available(env_config[0]["site_extarnel_ip"], 3000) \
+                        and is_service_available(env_config[0]["site_extarnel_ip"], 16180):
                     site_id = hq_session.add_site(site)
                     logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
                                 f"and external IP {site['site_extarnel_ip']}")
