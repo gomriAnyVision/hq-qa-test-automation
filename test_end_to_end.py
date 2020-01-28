@@ -41,6 +41,7 @@ if __name__ == '__main__':
                 try:
                     machine_mgmt.get(machine)
                     if machine_mgmt.get(machine).status_code == 500:
+                        logger.info(f"The Machine {machine} was already stopped skipping this step")
                         break
                 except:
                     pass
@@ -48,10 +49,10 @@ if __name__ == '__main__':
                             f"for another 10 seconds")
                 time.sleep(10)
             hq_session = HQ()
-            sleep_after_stopping_node = 90
+            sleep_after_stopping_node = 150
+            logger.info(f"Sleeping for {sleep_after_stopping_node} seconds after stopping node {machine}")
+            time.sleep(sleep_after_stopping_node)
             for site in env_config:
-                logger.info(f"Sleeping for {sleep_after_stopping_node} seconds after stopping node {machine}")
-                time.sleep(sleep_after_stopping_node)
                 # Deleting site before trying to add it again
                 mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
                                        mongo_user=mongo_config['hq_user'],
@@ -125,6 +126,7 @@ if __name__ == '__main__':
                 time.sleep(10)
                 machine_current_state = machine_mgmt.get(machine)
                 print(machine_current_state)
-            logger.info(f"Sleeping 120 seconds after machine {machine} starts")
-            time.sleep(120)
+            sleep_after_starting_machine = 180
+            logger.info(f"Sleeping {sleep_after_starting_machine} seconds after machine {machine} starts")
+            time.sleep(sleep_after_starting_machine)
             logger.info(f"Finished iteration: {iteration_number}")
