@@ -110,7 +110,7 @@ if __name__ == '__main__':
             machine_mgmt.start(machine)
             logger.info(f"Starting {machine} back utilsp")
             machine_current_state = machine_mgmt.get(machine_mgmt)
-            while not machine_current_state == "RUNNING" or "on":
+            while not machine_current_state == "STOPPED" or "off":
                 logger.info(f"sleeping 10 seconds waiting for {machine} to start")
                 time.sleep(10)
                 machine_current_state = machine_mgmt.get(machine)
