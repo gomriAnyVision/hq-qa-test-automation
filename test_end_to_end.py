@@ -102,7 +102,7 @@ if __name__ == '__main__':
             print(len(hq_session.get_subject_ids()))
             try:
                 logger.info("Playing forensic video in order to create recognition event in HQ")
-                play_forensic()
+                play_forensic(env_config)
                 logger.info("Connecting to HQ dashboard socketio waiting for recognition event")
                 verify_recognition_event(logger, sleep=60)
             except:
@@ -121,7 +121,7 @@ if __name__ == '__main__':
             logger.info(f"Starting {machine} back utilsp")
             machine_current_state = machine_mgmt.get(machine_mgmt)
             print(machine_current_state)
-            while machine_current_state == "STOPPED" or "off":
+            while not machine_current_state == "on":
                 logger.info(f"sleeping 10 seconds waiting for {machine} to start")
                 time.sleep(10)
                 machine_current_state = machine_mgmt.get(machine)

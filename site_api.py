@@ -21,6 +21,7 @@ def play_forensic(config, threshold=0.05):
         assert 200
         return res
 
+
 def is_api_available(ip):
     result = None
     while result is None:
