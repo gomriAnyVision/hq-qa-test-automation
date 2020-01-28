@@ -68,7 +68,7 @@ if __name__ == '__main__':
                             f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master}")
                 if feature_toggle_master == "false":
                     hq_session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
-                    sleep_after_toggle_feature = 30
+                    sleep_after_toggle_feature = 120
                     delete_pod(ip=env_config[0]['site_extarnel_ip'],
                                username=env_config[0]['ssh']['username'],
                                password=env_config[0]['ssh']['password'],
