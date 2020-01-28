@@ -21,3 +21,12 @@ def play_forensic(config, threshold=0.05):
         assert 200
         return res
 
+def is_api_available(ip):
+    result = None
+    while result is None:
+        try:
+            result = requests.get(f"http://{ip}:3000", timeout=5)
+            print(result.text)
+            return result
+        except:
+            print(result)

@@ -8,7 +8,7 @@ from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip
 from main import HQ
 from vm_management import MachineManagement, GcpInstanceMgmt, VmMgmt
 from socketio_client import verify_recognition_event, on_mass_mass_import_completed
-from site_api import play_forensic
+from site_api import play_forensic, is_api_available
 
 hq_machines = {
     "server5-vm-0": "192.168.122.186",
@@ -35,7 +35,7 @@ if __name__ == '__main__':
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
             machine_mgmt.stop(machine)
             logger.info(f"Stopping {machine}")
-            while machine_mgmt.get(machine) == "on":
+            while machine_mgmt.get(machine) == "on" or "RUNNING":
                 logger.info(f"{machine} is still up even though it should have stopped sleeping "
                             f"for another 10 seconds")
                 time.sleep(10)
@@ -78,9 +78,10 @@ if __name__ == '__main__':
                                 f" seconds to let "
                                 f"API restart properly")
                     logger.info("Finished sleeping")
-                site_id = hq_session.add_site(site)
-                logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
-                            f"and external IP {site['site_extarnel_ip']}")
+                if is_api_available(env_config[0]["site_extarnel_ip"]):
+                    site_id = hq_session.add_site(site)
+                    logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
+                                f"and external IP {site['site_extarnel_ip']}")
             sync_status = {"status": ""}
             while not sync_status['status'] == "synced":
                 time.sleep(10)
