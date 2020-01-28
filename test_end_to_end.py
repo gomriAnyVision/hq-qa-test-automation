@@ -30,12 +30,20 @@ if __name__ == '__main__':
     # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
     machine_mgmt = MachineManagement(VmMgmt())
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
+    iteration_number = 0
     while True:
+        iteration_number += 1
         for machine, ip in hq_machines.items():
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
             machine_mgmt.stop(machine)
             logger.info(f"Stopping {machine}")
             while machine_mgmt.get(machine) == "on" or "RUNNING":
+                try:
+                    machine_mgmt.get(machine)
+                    if machine_mgmt.get(machine).status_code == 500:
+                        break
+                except:
+                    pass
                 logger.info(f"{machine} is still up even though it should have stopped sleeping "
                             f"for another 10 seconds")
                 time.sleep(10)
@@ -119,3 +127,4 @@ if __name__ == '__main__':
                 print(machine_current_state)
             logger.info(f"Sleeping 120 seconds after machine {machine} starts")
             time.sleep(120)
+            logger.info(f"Finished iteration: {iteration_number}")
