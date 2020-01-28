@@ -23,8 +23,9 @@ class HQ(object):
     def add_subject(self, image="assets/subject.jpeg"):
         with open(image, 'rb') as image_object:
             image_to_upload = image_object.read()
+        self.request_headers['Content-Type'] = 'image/jpeg'
         res = requests.post('https://hq-api.tls.ai/master/subjects/faces-from-image',
-                            headers=self.request_headers, files=dict(images=image_to_upload))
+                            headers=self.request_headers, files=json.dumps(dict(images=image_to_upload)))
         # TODO: Find a better way to extract the subject data from the response
         print(res)
         subject_data = res.json()['data'][0]['results'][0]
