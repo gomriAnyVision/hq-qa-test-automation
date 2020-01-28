@@ -102,9 +102,9 @@ if __name__ == '__main__':
                 sites_id = mongo_client.get_sites_id()
                 remove_site_from_hq = hq_session.remove_site(sites_id)
                 disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
-                                                          username=env_config[0]['username'],
-                                                          password=env_config[0]['password'],
-                                                          pem_path=env_config[0]['pem_path'])
+                                                          username=env_config[0]['ssh']['username'],
+                                                          password=env_config[0]['ssh']['password'],
+                                                          pem_path=env_config[0]['ssh']['pem_path'])
                 logger.info(f"Delete site from HQ results: {pformat(remove_site_from_hq)}")
                 logger.info(f"Delete site from site results: {disconnect_site}")
             machine_mgmt.start(machine)
