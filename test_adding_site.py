@@ -5,7 +5,7 @@ from Utils.mongodb import MongoDB
 from Utils.logger import Logger
 from Utils.utils import Utils
 from socketio_client import verify_recognition_event
-from ssh import disconnect_site_from_hq, delete_hq_pod
+from ssh import disconnect_site_from_hq, delete_pod
 from main import HQ
 from site_api import play_forensic
 
@@ -35,7 +35,7 @@ if __name__ == '__main__':
         sites_id = mongo_client.get_sites_id()
         remove_site_from_hq = hq_session.remove_site(sites_id)
         logger.info(f"Delete site from HQ results: {pformat(remove_site_from_hq)}")
-        delete_hq_pod(env_config[0], ssh_config)
+        delete_pod(env_config[0], ssh_config)
         # Attempting to add site again after deleting
         disconnect_site = disconnect_site_from_hq(env_config, ssh_config)
         logger.info(f"Delete site from site results: {disconnect_site}")

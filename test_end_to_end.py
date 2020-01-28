@@ -4,7 +4,7 @@ import time
 from Utils.mongodb import MongoDB
 from Utils.logger import Logger
 from Utils.utils import Utils
-from ssh import disconnect_site_from_hq, delete_hq_pod, get_hq_ip
+from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip
 from main import HQ
 from vm_management import MachineManagement, GcpInstanceMgmt, VmMgmt
 from socketio_client import verify_recognition_event, on_mass_mass_import_completed
@@ -36,12 +36,9 @@ if __name__ == '__main__':
             machine_mgmt.stop(machine)
             logger.info(f"Stopping {machine}")
             while machine_mgmt.get(machine) == "on":
-                if machine_mgmt.get(machine).status_code == 500:
-                    break
                 logger.info(f"{machine} is still up even though it should have stopped sleeping "
                             f"for another 10 seconds")
                 time.sleep(10)
-
             hq_session = HQ()
             for site in env_config:
                 sleep_after_stopping_node = 180
@@ -58,10 +55,11 @@ if __name__ == '__main__':
                                                           username=env_config[0]['ssh']['username'],
                                                           password=env_config[0]['ssh']['password'],
                                                           pem_path=env_config[0]['ssh']['pem_path'])
-                delete_hq_pod(hq_ip=running_hq_node_ip,
-                              username=env_config[0]['ssh']['username'],
-                              password=env_config[0]['ssh']['password'],
-                              pem_path=env_config[0]['ssh']['pem_path'])
+                delete_pod(ip=running_hq_node_ip,
+                           username=env_config[0]['ssh']['username'],
+                           password=env_config[0]['ssh']['password'],
+                           pem_path=env_config[0]['ssh']['pem_path'],
+                           pod_name="hq")
                 logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
                 logger.info(f"Delete site from site results: {disconnect_site}")
                 # Attempting to add site again after deletion
@@ -70,11 +68,16 @@ if __name__ == '__main__':
                             f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master}")
                 if feature_toggle_master == "false":
                     hq_session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
-                    sleep_after_toggle_feature = 300
+                    sleep_after_toggle_feature = 30
+                    delete_pod(ip=env_config[0]['site_extarnel_ip'],
+                               username=env_config[0]['ssh']['username'],
+                               password=env_config[0]['ssh']['password'],
+                               pem_path=env_config[0]['ssh']['pem_path'],
+                               pod_name="site")
                     logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping {sleep_after_toggle_feature}"
                                 f" seconds to let "
                                 f"API restart properly")
-                    time.sleep(sleep_after_toggle_feature)
+                    time.sleep(60)
                     logger.info("Finished sleeping")
                 site_id = hq_session.add_site(site)
                 logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
