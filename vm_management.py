@@ -21,6 +21,12 @@ class MachineManagement(object):
     def get(self, name):
         return self.service.get(name)
 
+    def machine_list(self):
+        return self.machine_list()
+
+    def list_started_machine(self):
+        return self.service.list_started_machine()
+
 
 class VmMgmt(object):
     def _get_allocator_ip(self):
@@ -50,11 +56,18 @@ class VmMgmt(object):
         else:
             return res
 
-    def list_vms(self):
+    def list_machines(self):
         allocator_url = self._get_allocator_url()
         res = requests.get(allocator_url)
         assert res.status_code == 200
         return res.json()['vms']
+
+    def list_started_machine(self):
+        all_machines_status = []
+        for machine_name, values in self.list_machines().items():
+            all_machines_status.append(values['status'])
+        only_on_machines = list(filter(lambda status: status == 'on', all_machines_status))
+        return only_on_machines
 
 
 class GcpInstanceMgmt(object):
@@ -63,9 +76,9 @@ class GcpInstanceMgmt(object):
         self.project = project
         self.zone = zone
 
-    def list(self, zone="europe-west1-d", filter_by=""):
-        result = self.service.instances().list(project="anyvision-training", zone=zone,
-                                          filter=filter_by).execute()
+    def list_machines(self, zone="europe-west1-d", filter_by=""):
+        result = self.service.instances().list_machines(project="anyvision-training", zone=zone,
+                                                        filter=filter_by).execute()
         return result['items'] if 'items' in result else None
 
     # TODO: get the name and zone of the machines to update dynamically
@@ -87,5 +100,9 @@ class GcpInstanceMgmt(object):
         response = request.execute()
         pprint(response["status"])
 
+if __name__ == '__main__':
+    vm_mgr = VmMgmt()
+    machine_mgmt = MachineManagement(vm_mgr)
+    print(machine_mgmt.list_started_machine())
 
 

@@ -37,7 +37,9 @@ if __name__ == '__main__':
                     f"Failed iteration: {failed_to_add_site_counter}")
         for machine, ip in hq_machines.items():
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
-            machine_mgmt.stop(machine)
+            if len(machine_mgmt.list_started_machine()) >= 3:
+                logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
+                machine_mgmt.stop(machine)
             logger.info(f"Stopping {machine}")
             while machine_mgmt.get(machine) == "on" or "RUNNING":
                 try:
