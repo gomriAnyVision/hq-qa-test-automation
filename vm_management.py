@@ -83,6 +83,8 @@ class VmMgmt(object):
     def ensure_all_machines_started(self, logger):
         started_machine_list = self.list_started_machine()
         machines_to_start = [machine for machine in self.machine_names() if machine['status'] == 'off']
+        if not machines_to_start:
+            return False
         while len(started_machine_list) < 4:
             for machine in machines_to_start:
                 self.start(machine['machine_name'])
