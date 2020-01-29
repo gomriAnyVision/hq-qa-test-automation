@@ -3,7 +3,7 @@ import json
 import argparse
 import string
 import random
-from datetime import time
+import time
 
 DEFAULT_CONFIG = "config/config.json"
 

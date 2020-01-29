@@ -1,6 +1,6 @@
-from pprint import pformat
 import time
 
+from pprint import pformat
 from Utils.mongodb import MongoDB
 from Utils.logger import Logger
 from Utils.utils import Utils, wait_for
