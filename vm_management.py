@@ -86,7 +86,7 @@ class VmMgmt(object):
             for machine in machines_to_start:
                 self.start(machine['machine_name'])
                 started_machine_list = self.list_started_machine()
-                print(f"Attempting to start {machines_to_start['machine_name']} in order to \n"
+                print(f"Attempting to start {machine['machine_name']} in order to \n"
                       f"get back to 3 hq nodes being up for tha test to start properly")
 
 
