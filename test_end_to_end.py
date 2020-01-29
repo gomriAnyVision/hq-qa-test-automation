@@ -33,11 +33,11 @@ if __name__ == '__main__':
     failed_to_add_site_counter = 0
     iteration_number = 0
     while True:
-        logger.info(f"successfully iteration: {iteration_number}\n "
+        logger.info(f"Successfully iteration: {iteration_number} "
                     f"Failed iteration: {failed_to_add_site_counter}")
         for machine, ip in hq_machines.items():
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
-            if len(machine_mgmt.list_started_machine()) >= 3:
+            if len(machine_mgmt.list_started_machine()) >= 4:
                 logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
                 machine_mgmt.stop(machine)
                 logger.info(f"Stopping {machine}")
@@ -98,7 +98,7 @@ if __name__ == '__main__':
                         logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
                                     f"and external IP {site['site_extarnel_ip']}")
                     except:
-                        logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']}"
+                        logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']} "
                                      f"Attempting to run the automation again")
                         machine_current_state = machine_mgmt.get(machine)
                         while not machine_current_state == "on":
@@ -109,8 +109,10 @@ if __name__ == '__main__':
                             machine_current_state = machine_mgmt.get(machine)
                             print(machine_current_state)
                         sleep_after_starting_machine = 180
+                        logger.info(f"sleeping {sleep_after_starting_machine} seconds waiting for machine to start")
                         failed_to_add_site_counter += 1
                         continue
+                    continue
             sync_status = {"status": ""}
             while not sync_status['status'] == "synced":
                 time.sleep(10)
