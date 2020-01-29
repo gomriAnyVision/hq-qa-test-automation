@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
     machine_mgmt = MachineManagement(VmMgmt())
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
-    machine_mgmt.insure_all_machines_started(logger)
+    machine_mgmt.ensure_all_machines_started(logger)
     failed_to_add_site_counter = 0
     iteration_number = 0
     while True:
