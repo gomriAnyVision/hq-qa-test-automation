@@ -3,8 +3,15 @@ import json
 import argparse
 import string
 import random
+from datetime import time
 
 DEFAULT_CONFIG = "config/config.json"
+
+
+def wait_for(time_to_wait, message, logger):
+    logger.info(message)
+    time.sleep(time_to_wait)
+    logger.info(f"Finished sleeping {time_to_wait}")
 
 
 class Utils(object):
@@ -50,3 +57,4 @@ class Utils(object):
         """Generate a random string of fixed length """
         letters = string.ascii_lowercase
         return ''.join(random.choice(letters) for i in range(string_length))
+

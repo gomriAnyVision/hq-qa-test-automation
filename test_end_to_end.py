@@ -3,11 +3,11 @@ import time
 
 from Utils.mongodb import MongoDB
 from Utils.logger import Logger
-from Utils.utils import Utils
+from Utils.utils import Utils, wait_for
 from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip
 from main import HQ
 from vm_management import MachineManagement, GcpInstanceMgmt, VmMgmt
-from socketio_client import verify_recognition_event, on_mass_mass_import_completed
+from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
 hq_machines = {
@@ -37,7 +37,7 @@ if __name__ == '__main__':
                     f"Failed iteration: {failed_to_add_site_counter}")
         for machine, ip in hq_machines.items():
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
-            if len(machine_mgmt.list_started_machine()) >= 4:
+            if len(machine_mgmt.list_started_machine()) == 4:
                 logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
                 machine_mgmt.stop(machine)
                 logger.info(f"Stopping {machine}")
@@ -53,9 +53,7 @@ if __name__ == '__main__':
                                 f"for another 10 seconds")
                     time.sleep(10)
             hq_session = HQ()
-            sleep_after_stopping_node = 150
-            logger.info(f"Sleeping for {sleep_after_stopping_node} seconds after stopping node {machine}")
-            time.sleep(sleep_after_stopping_node)
+            wait_for(150, "Sleeping after stopping node", logger)
             for site in env_config:
                 # Deleting site before trying to add it again
                 mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
@@ -90,10 +88,8 @@ if __name__ == '__main__':
                 if is_service_available(env_config[0]["site_extarnel_ip"], 3000) \
                         and is_service_available(env_config[0]["site_extarnel_ip"], 16180):
                     try:
-                        sleep_after_toggle_feature = 120
-                        logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping {sleep_after_toggle_feature}"
-                                    f" seconds to let API restart properly")
-                        logger.info("Finished sleeping")
+                        logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true'")
+                        wait_for(120, "Waiting for api to restart after toggling ", logger)
                         site_id = hq_session.add_site(site)
                         logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
                                     f"and external IP {site['site_extarnel_ip']}")
@@ -108,8 +104,7 @@ if __name__ == '__main__':
                             time.sleep(10)
                             machine_current_state = machine_mgmt.get(machine)
                             print(machine_current_state)
-                        sleep_after_starting_machine = 180
-                        logger.info(f"sleeping {sleep_after_starting_machine} seconds waiting for machine to start")
+                        wait_for(180, "Sleeping waiting for machine to start", logger)
                         failed_to_add_site_counter += 1
                         continue
             continue
@@ -118,7 +113,7 @@ if __name__ == '__main__':
                 time.sleep(10)
                 sync_status = mongo_client.site_sync_status()
             if args.add_single_subject:
-                time.sleep(60)
+                wait_for(60, "Sleeping after before adding subject", logger)
                 hq_session.add_subject()
                 logger.info("Subject added from HQ to site")
             print(len(hq_session.get_subject_ids()))
@@ -150,9 +145,7 @@ if __name__ == '__main__':
                 time.sleep(10)
                 machine_current_state = machine_mgmt.get(machine)
                 print(machine_current_state)
-            sleep_after_starting_machine = 180
-            logger.info(f"Sleeping {sleep_after_starting_machine} seconds after machine {machine} starts")
-            time.sleep(sleep_after_starting_machine)
+            wait_for(180, "Sleeping waiting for machine to start", logger)
             iteration_number += 1
             logger.info(f"Finished iteration: {iteration_number}")
 
