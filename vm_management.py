@@ -1,11 +1,12 @@
 import json
-from pprint import pprint
-
 import googleapiclient
 import requests
+
+from pprint import pprint
 from googleapiclient import discovery
 
 from Utils.utils import Utils
+from Utils.logger import Logger
 
 
 class MachineManagement(object):
@@ -29,7 +30,7 @@ class MachineManagement(object):
 
     def insure_all_machines_started(self, logger):
         logger.info("Attempting to start all hq nodes")
-        return self.service.insure_all_machines_started()
+        return self.service.insure_all_machines_started(logger)
 
 
 class VmMgmt(object):
@@ -79,15 +80,15 @@ class VmMgmt(object):
             all_machines_names.append({"machine_name": machine_name, "status": values['status']})
         return all_machines_names
 
-    def insure_all_machines_started(self):
+    def insure_all_machines_started(self,logger):
         started_machine_list = self.list_started_machine()
         machines_to_start = [machine for machine in self.machine_names() if machine['status'] == 'off']
         while len(started_machine_list) < 4:
             for machine in machines_to_start:
                 self.start(machine['machine_name'])
                 started_machine_list = self.list_started_machine()
-                print(f"Attempting to start {machine['machine_name']} in order to \n"
-                      f"get back to 3 hq nodes being up for tha test to start properly")
+                logger.info(f"Attempting to start {machine['machine_name']} in order to \n"
+                        f"get back to 3 hq nodes being up for tha test to start properly")
 
 
 class GcpInstanceMgmt(object):
@@ -123,7 +124,10 @@ class GcpInstanceMgmt(object):
 
 if __name__ == '__main__':
     vm_mgr = VmMgmt()
+    Logger = Logger()
+    Utils = Utils()
+    logger = Logger.get_logger()
     machine_mgmt = MachineManagement(vm_mgr)
-    machine_mgmt.insure_all_machines_started()
+    machine_mgmt.insure_all_machines_started(logger)
 
 
