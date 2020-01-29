@@ -47,7 +47,7 @@ if __name__ == '__main__':
                     try:
                         machine_mgmt.get(machine)
                         if machine_mgmt.get(machine).status_code == 500:
-                            logger.info(f"The Machine {machine} was already stopped skipping this step")
+                            logger.info(f"The Machine {machine} was already stopped")
                             break
                     except:
                         pass
@@ -138,14 +138,14 @@ if __name__ == '__main__':
             machine_mgmt.start(machine)
             logger.info(f"Attempting to start machine: {machine} ")
             machine_current_state = machine_mgmt.get(machine_mgmt)
-            print(machine_current_state)
+            logger.info(f"Machine status: {machine_current_state}")
             while not machine_current_state == "on":
                 logger.info(f"sleeping 10 seconds waiting for {machine} to start")
                 machine_mgmt.start(machine)
                 logger.info(f"Attempting to start machine: {machine} ")
                 time.sleep(10)
                 machine_current_state = machine_mgmt.get(machine)
-                print(machine_current_state)
+                logger.info(f"Machine status: {machine_current_state}")
             wait_for(300, "Sleeping waiting for machine to start", logger)
             iteration_number += 1
             logger.info(f"Finished iteration: {iteration_number}")
