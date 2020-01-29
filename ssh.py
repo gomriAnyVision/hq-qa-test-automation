@@ -5,6 +5,23 @@ script_path = "disconnect_site_from_hq.sh"
 
 # TODO: Find to know if your running on cloud or VM without user input
 
+def is_cloud():
+    pass
+
+
+def disconnect_site_from_hq_V2(host, username, password, key_filename):
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    ssh.connect(hostname=host,
+                username=None if is_cloud() else username,
+                password=None if is_cloud() else username,
+                key_filename=None if config['pem_path'] == "" else config['pem_path'])
+    sftp = ssh.open_sftp()
+    sftp.put(f"{file_path}", f"/tmp/{script_path}", confirm=True)
+    stdin, stdout, stderr = ssh.exec_command(f"bash /tmp/{script_path}")
+    print(stdout.readlines())
+
 def disconnect_site_from_hq(**config):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())

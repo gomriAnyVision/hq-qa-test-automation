@@ -80,7 +80,6 @@ if __name__ == '__main__':
                             f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master}")
                 if feature_toggle_master == "false":
                     hq_session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
-
                     delete_pod(ip=env_config[0]['site_extarnel_ip'],
                                username=env_config[0]['ssh']['username'],
                                password=env_config[0]['ssh']['password'],
@@ -90,7 +89,7 @@ if __name__ == '__main__':
                         and is_service_available(env_config[0]["site_extarnel_ip"], 16180):
                     try:
                         logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true'")
-                        wait_for(120, "Waiting for api to restart after toggling ", logger)
+                        wait_for(120, "Waiting for api to restart after feature toggle master", logger)
                         site_id = hq_session.add_site(site)
                         logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
                                     f"and external IP {site['site_extarnel_ip']}")

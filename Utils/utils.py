@@ -9,9 +9,9 @@ DEFAULT_CONFIG = "config/config.json"
 
 
 def wait_for(time_to_wait, message, logger):
-    logger.info(message)
+    logger.info(f"{message} for {time_to_wait}")
     time.sleep(time_to_wait)
-    logger.info(f"Finished sleeping {time_to_wait}")
+    logger.info(f"Finished sleeping {time_to_wait} seconds")
 
 
 class Utils(object):
