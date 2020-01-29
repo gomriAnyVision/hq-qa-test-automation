@@ -40,18 +40,18 @@ if __name__ == '__main__':
             if len(machine_mgmt.list_started_machine()) >= 3:
                 logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
                 machine_mgmt.stop(machine)
-            logger.info(f"Stopping {machine}")
-            while machine_mgmt.get(machine) == "on" or "RUNNING":
-                try:
-                    machine_mgmt.get(machine)
-                    if machine_mgmt.get(machine).status_code == 500:
-                        logger.info(f"The Machine {machine} was already stopped skipping this step")
-                        break
-                except:
-                    pass
-                logger.info(f"{machine} is still up even though it should have stopped sleeping "
-                            f"for another 10 seconds")
-                time.sleep(10)
+                logger.info(f"Stopping {machine}")
+                while machine_mgmt.get(machine) == "on" or "RUNNING":
+                    try:
+                        machine_mgmt.get(machine)
+                        if machine_mgmt.get(machine).status_code == 500:
+                            logger.info(f"The Machine {machine} was already stopped skipping this step")
+                            break
+                    except:
+                        pass
+                    logger.info(f"{machine} is still up even though it should have stopped sleeping "
+                                f"for another 10 seconds")
+                    time.sleep(10)
             hq_session = HQ()
             sleep_after_stopping_node = 150
             logger.info(f"Sleeping for {sleep_after_stopping_node} seconds after stopping node {machine}")
