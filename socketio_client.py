@@ -42,7 +42,6 @@ def on_mass_mass_import_completed(*args):
 @sio.on("new_recognition")
 def on_recognition(*args):
     event_count["on_recognition"] = 1
-    print(*args)
 
 
 @sio.on("new_subject_request")
@@ -91,6 +90,7 @@ def verify_recognition_event(logger, sleep=20):
     time.sleep(sleep)
     try:
         assert event_count["on_recognition"] > 0
+        print(event_count)
     except AssertionError:
         logger.error(f"Failed to receive recognition event {HOST}")
     _disconnect()

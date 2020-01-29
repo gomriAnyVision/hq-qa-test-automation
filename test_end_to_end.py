@@ -100,6 +100,8 @@ if __name__ == '__main__':
                         machine_current_state = machine_mgmt.get(machine)
                         while not machine_current_state == "on":
                             logger.info(f"sleeping 10 seconds waiting for {machine} to start")
+                            machine_mgmt.start(machine)
+                            logger.info(f"Attempting to start machine: {machine} ")
                             time.sleep(10)
                             machine_current_state = machine_mgmt.get(machine)
                             print(machine_current_state)
@@ -133,11 +135,13 @@ if __name__ == '__main__':
                 logger.info(f"Delete site from HQ results: {pformat(remove_site_from_hq)}")
                 logger.info(f"Delete site from site results: {disconnect_site}")
             machine_mgmt.start(machine)
-            logger.info(f"Starting {machine} back utilsp")
+            logger.info(f"Attempting to start machine: {machine} ")
             machine_current_state = machine_mgmt.get(machine_mgmt)
             print(machine_current_state)
             while not machine_current_state == "on":
                 logger.info(f"sleeping 10 seconds waiting for {machine} to start")
+                machine_mgmt.start(machine)
+                logger.info(f"Attempting to start machine: {machine} ")
                 time.sleep(10)
                 machine_current_state = machine_mgmt.get(machine)
                 print(machine_current_state)
