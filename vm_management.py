@@ -80,7 +80,7 @@ class VmMgmt(object):
             all_machines_names.append({"machine_name": machine_name, "status": values['status']})
         return all_machines_names
 
-    def insure_all_machines_started(self,logger):
+    def ensure_all_machines_started(self, logger):
         started_machine_list = self.list_started_machine()
         machines_to_start = [machine for machine in self.machine_names() if machine['status'] == 'off']
         while len(started_machine_list) < 4:
