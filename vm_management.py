@@ -27,6 +27,10 @@ class MachineManagement(object):
     def list_started_machine(self):
         return self.service.list_started_machine()
 
+    def insure_all_machines_started(self, logger):
+        logger.info("Attempting to start all hq nodes")
+        return self.service.insure_all_machines_started()
+
 
 class VmMgmt(object):
     def _get_allocator_ip(self):
@@ -67,7 +71,23 @@ class VmMgmt(object):
         for machine_name, values in self.list_machines().items():
             all_machines_status.append(values['status'])
         only_on_machines = list(filter(lambda status: status == 'on', all_machines_status))
-        return only_on_machines
+        return list(only_on_machines)
+
+    def machine_names(self):
+        all_machines_names = []
+        for machine_name, values in self.list_machines().items():
+            all_machines_names.append({"machine_name": machine_name, "status": values['status']})
+        return all_machines_names
+
+    def insure_all_machines_started(self):
+        started_machine_list = self.list_started_machine()
+        machines_to_start = [machine for machine in self.machine_names() if machine['status'] == 'off']
+        while len(started_machine_list) < 4:
+            for machine in machines_to_start:
+                self.start(machine['machine_name'])
+                started_machine_list = self.list_started_machine()
+                print(f"Attempting to start {machines_to_start['machine_name']} in order to \n"
+                      f"get back to 3 hq nodes being up for tha test to start properly")
 
 
 class GcpInstanceMgmt(object):
@@ -100,9 +120,10 @@ class GcpInstanceMgmt(object):
         response = request.execute()
         pprint(response["status"])
 
+
 if __name__ == '__main__':
     vm_mgr = VmMgmt()
     machine_mgmt = MachineManagement(vm_mgr)
-    print(machine_mgmt.list_started_machine())
+    machine_mgmt.insure_all_machines_started()
 
 

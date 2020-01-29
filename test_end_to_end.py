@@ -30,6 +30,7 @@ if __name__ == '__main__':
     # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
     machine_mgmt = MachineManagement(VmMgmt())
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
+    machine_mgmt.insure_all_machines_started(logger)
     failed_to_add_site_counter = 0
     iteration_number = 0
     while True:
@@ -52,8 +53,8 @@ if __name__ == '__main__':
                     logger.info(f"{machine} is still up even though it should have stopped sleeping "
                                 f"for another 10 seconds")
                     time.sleep(10)
+            wait_for(300, "Sleeping after stopping node", logger)
             hq_session = HQ()
-            wait_for(150, "Sleeping after stopping node", logger)
             for site in env_config:
                 # Deleting site before trying to add it again
                 mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
@@ -104,7 +105,7 @@ if __name__ == '__main__':
                             time.sleep(10)
                             machine_current_state = machine_mgmt.get(machine)
                             print(machine_current_state)
-                        wait_for(180, "Sleeping waiting for machine to start", logger)
+                        wait_for(300, "Sleeping waiting for machine to start", logger)
                         failed_to_add_site_counter += 1
                         continue
             continue
@@ -145,7 +146,7 @@ if __name__ == '__main__':
                 time.sleep(10)
                 machine_current_state = machine_mgmt.get(machine)
                 print(machine_current_state)
-            wait_for(180, "Sleeping waiting for machine to start", logger)
+            wait_for(300, "Sleeping waiting for machine to start", logger)
             iteration_number += 1
             logger.info(f"Finished iteration: {iteration_number}")
 
