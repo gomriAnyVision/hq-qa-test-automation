@@ -112,7 +112,7 @@ if __name__ == '__main__':
                         logger.info(f"sleeping {sleep_after_starting_machine} seconds waiting for machine to start")
                         failed_to_add_site_counter += 1
                         continue
-                    continue
+            continue
             sync_status = {"status": ""}
             while not sync_status['status'] == "synced":
                 time.sleep(10)
