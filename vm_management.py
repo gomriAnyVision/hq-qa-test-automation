@@ -22,11 +22,11 @@ class MachineManagement(object):
     def get(self, name):
         return self.service.get(name)
 
-    def machine_list(self):
-        return self.machine_list()
+    def machine_list(self, *kwargs):
+        return self.service.machine_list(*kwargs)
 
     def list_started_machine(self):
-        return self.service.list_started_machine()
+        return self.service.list_stopped_machines()
 
     def ensure_all_machines_started(self, logger):
         logger.info("Attempting to start all hq nodes")
@@ -61,7 +61,7 @@ class VmMgmt(object):
         else:
             return res
 
-    def list_machines(self):
+    def machine_list(self):
         allocator_url = self._get_allocator_url()
         res = requests.get(allocator_url)
         assert res.status_code == 200
@@ -99,9 +99,9 @@ class GcpInstanceMgmt(object):
         self.project = project
         self.zone = zone
 
-    def list_machines(self, zone="europe-west1-d", filter_by=""):
-        result = self.service.instances().list_machines(project="anyvision-training", zone=zone,
-                                                        filter=filter_by).execute()
+    def machine_list(self, filter):
+        result = self.service.instances().list(project="anyvision-training", zone=self.zone,
+                                               filter=filter).execute()
         return result['items'] if 'items' in result else None
 
     # TODO: get the name and zone of the machines to update dynamically
@@ -123,13 +123,40 @@ class GcpInstanceMgmt(object):
         response = request.execute()
         pprint(response["status"])
 
+    def list_stopped_machines(self):
+        machines_to_start = []
+        for machine in self.machine_list(filter="labels.auto eq test"):
+            if machine['status'] == "TERMINATED":
+                machines_to_start.append({"machine_name": machine['name'],
+                                          "status": machine['status']})
+            else:
+                continue
+        return machines_to_start
+
+    def list_started_machine(self):
+        machines_to_start = []
+        for machine in self.machine_list(filter="labels.auto eq test"):
+            if machine['status'] == "RUNNING":
+                machines_to_start.append({"machine_name": machine['name'],
+                                          "status": machine['status']})
+            else:
+                continue
+        return machines_to_start
+
+
+    def ensure_all_machines_started(self, logger):
+        machines_to_start = self.list_stopped_machines()
+        while self.list_stopped_machines():
+            for machine in machines_to_start:
+                self.start(machine['machine_name'])
+                machines_to_start = self.list_stopped_machines()
+                logger.info(f"Attempting to start {machine['machine_name']} in order to "
+                            f"get back to 3 hq nodes being up for tha test to start properly")
 
 if __name__ == '__main__':
-    vm_mgr = VmMgmt()
+    machine_mgmt_service = GcpInstanceMgmt(zone="us-west1-b")
     Logger = Logger()
     Utils = Utils()
     logger = Logger.get_logger()
-    machine_mgmt = MachineManagement(vm_mgr)
-    machine_mgmt.ensure_all_machines_started(logger)
-
-
+    # machine_mgmt = MachineManagement(machine_mgmt_service)
+    machine_mgmt_service.ensure_all_machines_started(logger)

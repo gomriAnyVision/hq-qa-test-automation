@@ -11,10 +11,13 @@ from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
 hq_machines = {
-    "server5-vm-0": "192.168.122.186",
-    "server5-vm-1": "192.168.122.38",
-    "server5-vm-2": "192.168.122.190"
+    "aharon-hq-ha-d-us-west1-b-1": "35.199.172.249",
+    "aharon-hq-ha-d-us-west1-b-2": "34.83.239.94",
+    "aharon-hq-ha-d-us-west1-b-3": "104.198.104.178",
+    "zone": "us-west1-b"
 }
+
+
 
 
 if __name__ == '__main__':
@@ -27,9 +30,9 @@ if __name__ == '__main__':
     logger.info(f"Received config: {pformat(mongo_config)}")
     env_config = Utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")
-    # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
-    machine_mgmt = MachineManagement(VmMgmt())
-    wait_for_cluster = 600
+    machine_mgmt = GcpInstanceMgmt(zone=hq_machines['zone'])
+    # machine_mgmt = MachineManagement(VmMgmt())
+    wait_for_cluster = 300
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
@@ -44,7 +47,7 @@ if __name__ == '__main__':
                 logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
                 machine_mgmt.stop(machine)
                 logger.info(f"Stopping {machine}")
-                while machine_mgmt.get(machine) == "on" or "RUNNING":
+                while machine_mgmt.get(machine) == "on" or machine_mgmt.get(machine) == "RUNNING":
                     try:
                         machine_mgmt.get(machine)
                         if machine_mgmt.get(machine).status_code == 500:
@@ -99,7 +102,7 @@ if __name__ == '__main__':
                         logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']} "
                                      f"Attempting to run the automation again")
                         machine_current_state = machine_mgmt.get(machine)
-                        while not machine_current_state == "on":
+                        while not machine_current_state == "on" or "RUNNING":
                             logger.info(f"sleeping 10 seconds waiting for {machine} to start")
                             machine_mgmt.start(machine)
                             logger.info(f"Attempting to start machine: {machine} ")
@@ -140,7 +143,7 @@ if __name__ == '__main__':
             logger.info(f"Attempting to start machine: {machine} ")
             machine_current_state = machine_mgmt.get(machine_mgmt)
             logger.info(f"Machine status: {machine_current_state}")
-            while not machine_current_state == "on":
+            while not machine_current_state == "on" or "RUNNING":
                 logger.info(f"sleeping 10 seconds waiting for {machine} to start")
                 machine_mgmt.start(machine)
                 logger.info(f"Attempting to start machine: {machine} ")
