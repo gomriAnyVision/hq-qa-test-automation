@@ -101,12 +101,12 @@ class HQ(object):
 
     def consul_set(self, key, value, config):
         data = value
-        res = requests.put(f"http://{config['site_consul_ip']}/v1/kv/{key}", data=data,
+        res = requests.put(f"http://{config['site_extarnel_ip']}/v1/kv/{key}", data=data,
                            auth=("admin", "Passw0rd123"))
         return res.json()
 
     def consul_get_one(self, key, config):
-        res = requests.get(f"http://{config['site_consul_ip']}/v1/kv/{key}",
+        res = requests.get(f"http://{config['site_extarnel_ip']}/v1/kv/{key}",
                            auth=("admin", "Passw0rd123"))
         decoded_res = base64.b64decode(res.json()[0]['Value']).decode("utf-8")
         return decoded_res
