@@ -105,7 +105,7 @@ if __name__ == '__main__':
                             logger.info(f"Attempting to start machine: {machine} ")
                             time.sleep(10)
                             machine_current_state = machine_mgmt.get(machine)
-                            print(machine_current_state)
+                            logger.debug(f"Machine state: {machine_current_state}")
                         wait_for(wait_for_cluster, "Sleeping waiting for machine to start", logger)
                         failed_to_add_site_counter += 1
                         continue
@@ -118,7 +118,7 @@ if __name__ == '__main__':
                 wait_for(60, "Sleeping after before adding subject", logger)
                 hq_session.add_subject()
                 logger.info("Subject added from HQ to site")
-            print(len(hq_session.get_subject_ids()))
+            logger.debug(f"Site subjects: {len(hq_session.get_subject_ids())}")
             try:
                 logger.info("Playing forensic video in order to create recognition event in HQ")
                 play_forensic(env_config)

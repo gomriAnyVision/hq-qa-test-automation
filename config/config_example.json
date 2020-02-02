@@ -34,7 +34,7 @@
     },
     "mongo": {
         "hq_pass": "",
-        "hq_user": "",
+        "hq_user": "root",
         "mongo_service_url": "mongodb.replicaset-0.mongodb-replicaset,mongodb.replicaset-1.mongodb-replicaset,mongodb.replicaset-2.mongodb-replicaset",
         "site_pass": "",
         "site_ip": ""
