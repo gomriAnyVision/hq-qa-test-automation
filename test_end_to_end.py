@@ -109,7 +109,6 @@ if __name__ == '__main__':
                         wait_for(wait_for_cluster, "Sleeping waiting for machine to start", logger)
                         failed_to_add_site_counter += 1
                         continue
-            continue
             sync_status = {"status": ""}
             while not sync_status['status'] == "synced":
                 time.sleep(10)

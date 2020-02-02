@@ -7,13 +7,26 @@ class Logger(object):
     #  each file should create it's own log
     def __init__(self):
         self.logger = logging.getLogger()
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler = logging.FileHandler("execution.log")
         handler = logging.StreamHandler(sys.stdout)
+        file_handler.setFormatter(formatter)
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
         self.logger.addHandler(file_handler)
 
     def get_logger(self):
         return self.logger
+
+def test():
+    logger = logging.getLogger("test")
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler = logging.FileHandler("execution.log")
+    file_handler.setFormatter(formatter)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.addHandler(handler)
+    logger.debug("s")
