@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 from urllib.parse import quote_plus
 
 # from automation.devops_automation_infra.plugins.mongodb import MongoDB
@@ -56,9 +57,11 @@ def test():
                      mongo_host_port_array="mongodb.replicaset-0.mongodb-replicaset,"
                                            "mongodb.replicaset-1.mongodb-replicaset,"
                                            "mongodb.replicaset-2.mongodb-replicaset")
+    for doc in client.get_sites_id():
+        assert doc is not None
+    assert client.count_subjects("mapi") is not None
+    assert client.find("mapi","subjects_groups") is not None
 
 
 if __name__ == '__main__':
     test()
-
-
