@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from urllib.parse import quote_plus
+
 # from automation.devops_automation_infra.plugins.mongodb import MongoDB
 # from automation_infra.plugins.base_plugin import plugins
 """
@@ -18,41 +19,46 @@ class MongoDB(object):
               f"{mongo_host_port_array}/{mongo_db}?authSource={mongo_auth_db}"
         self.client = MongoClient(uri, w=1, journal=True, replicaSet=rs)
 
-    def find(self, db, collection):
-        res = db[collection].find({})
+    def find(self, db, collection, query={}):
+        res = self.client[db][collection].find(query)
         return res
 
     def get_list_sites(self):
-        sites = self.find('db_name', "sites")
+        sites = self.find("mapi", "sites")
         return sites
 
     def _get_list_sites(self, db):
         self.site_list = []
-        res = db.sites.find({})
+        res = db.sites.find()
         for site in res:
             self.site_list.append(site)
         return self.site_list
 
     def count_subjects(self, db):
-        return db.subjects.count()
+        return self.client[db].subjects.count()
 
     def site_sync_status(self):
-        db = self._get_db("mapi")
-        site_list = self._get_list_sites(db)
+        site_list = self._get_list_sites(self.client['mapi'])
         for site in site_list:
             return site['syncStatus']
 
-    def _get_db(self, db):
-        return self.client[db]
-
     def get_sites_id(self):
-        db = self._get_db("mapi")
         site_ids = []
-        site_list = self._get_list_sites(db)
+        site_list = self._get_list_sites(self.client['mapi'])
         for site in site_list:
             site_ids.append(site['_id'])
         return site_ids
 
-#
-# def test_basic(base_config):
-#     base_config.hosts.host.MongoDB.connect()
+
+def test():
+    client = MongoDB(mongo_user="root",
+                     mongo_password="M2Q1MDUzYjYyOGM4N2JhN2JmYjM1MTMz",
+                     mongo_host_port_array="mongodb.replicaset-0.mongodb-replicaset,"
+                                           "mongodb.replicaset-1.mongodb-replicaset,"
+                                           "mongodb.replicaset-2.mongodb-replicaset")
+
+
+if __name__ == '__main__':
+    test()
+
+
