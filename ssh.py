@@ -58,8 +58,10 @@ def delete_pod(**config):
     print(f"Successfully connected to to {config['ip']}")
     command = _get_pod_name(name=config['pod_name'])
     stdin, stdout, stderr = ssh.exec_command(command)
+    print(f"Command: {command}")
     hq_pod_name = stdout.read()
     sanitized_hq_pod_name = hq_pod_name.rstrip().decode("utf-8")
+    print(f"Sanitized hq pod name: {sanitized_hq_pod_name}")
     stdin, stdout, stderr = ssh.exec_command(f"kubectl delete pod {sanitized_hq_pod_name}")
     print(stdout.read().rstrip().decode("utf-8"))
 
