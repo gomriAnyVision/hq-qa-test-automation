@@ -1,3 +1,5 @@
+import json
+
 from pymongo import MongoClient
 from urllib.parse import quote_plus
 # from automation.devops_automation_infra.plugins.mongodb import MongoDB
@@ -53,6 +55,14 @@ class MongoDB(object):
             site_ids.append(site['_id'])
         return site_ids
 
+def test():
+    path = "../config/config.json"
+    with open(path, 'rb') as conf_path:
+        config = json.load(conf_path)
+    client = MongoDB(mongo_user="root",
+                     mongo_password="M2Q1MDUzYjYyOGM4N2JhN2JmYjM1MTMz",
+                     mongo_host_port_array=config["mongo"]['mongo_service_url'])
+    print(client.site_sync_status()['status'])
 
 # def test_basic(base_config):
 #     base_config.hosts.host.MongoDB.connect()

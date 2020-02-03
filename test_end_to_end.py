@@ -17,6 +17,56 @@ hq_machines = {
 }
 
 
+def delete_site():
+    sites_id = mongo_client.get_sites_id()
+    remove_site_from_hq = hq_session.remove_site(sites_id)
+    disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
+                                              username=env_config[0]['ssh']['username'],
+                                              password=env_config[0]['ssh']['password'],
+                                              pem_path=env_config[0]['ssh']['pem_path'])
+    delete_pod(ip=running_hq_node_ip,
+               username=env_config[0]['ssh']['username'],
+               password=env_config[0]['ssh']['password'],
+               pem_path=env_config[0]['ssh']['pem_path'],
+               pod_name="hq")
+    logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
+    logger.info(f"Delete site from site results: {disconnect_site}")
+
+
+def stop_machine(machine):
+    if len(machine_mgmt.list_started_machine()) == 4:
+        logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
+        machine_mgmt.stop(machine)
+        logger.info(f"Stopping {machine}")
+        while machine_mgmt.get(machine) == "on" or "RUNNING":
+            try:
+                machine_mgmt.get(machine)
+                if machine_mgmt.get(machine).status_code == 500:
+                    logger.info(f"The Machine {machine} was already stopped")
+                    break
+            except:
+                pass
+            logger.info(f"{machine} is still up even though it should have stopped sleeping "
+                        f"for another 10 seconds")
+            time.sleep(10)
+    wait_for(wait_for_cluster, "Sleeping after stopping node", logger)
+
+
+def start_machine(machine):
+    machine_mgmt.start(machine)
+    logger.info(f"Attempting to start machine: {machine} ")
+    machine_current_state = machine_mgmt.get(machine_mgmt)
+    logger.info(f"Machine status: {machine_current_state}")
+    while not machine_current_state == "on":
+        logger.info(f"sleeping 10 seconds waiting for {machine} to start")
+        machine_mgmt.start(machine)
+        logger.info(f"Attempting to start machine: {machine} ")
+        time.sleep(10)
+        machine_current_state = machine_mgmt.get(machine)
+        logger.info(f"Machine status: {machine_current_state}")
+    wait_for(wait_for_cluster, "Sleeping waiting for machine to start", logger)
+
+
 if __name__ == '__main__':
     Logger = Logger()
     Utils = Utils()
@@ -33,29 +83,15 @@ if __name__ == '__main__':
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
+    delete_site()
     failed_to_add_site_counter = 0
     iteration_number = 0
     while True:
         logger.info(f"Successfully iteration: {iteration_number} "
                     f"Failed iteration: {failed_to_add_site_counter}")
         for machine, ip in hq_machines.items():
+            stop_machine(machine)
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
-            if len(machine_mgmt.list_started_machine()) == 4:
-                logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
-                machine_mgmt.stop(machine)
-                logger.info(f"Stopping {machine}")
-                while machine_mgmt.get(machine) == "on" or "RUNNING":
-                    try:
-                        machine_mgmt.get(machine)
-                        if machine_mgmt.get(machine).status_code == 500:
-                            logger.info(f"The Machine {machine} was already stopped")
-                            break
-                    except:
-                        pass
-                    logger.info(f"{machine} is still up even though it should have stopped sleeping "
-                                f"for another 10 seconds")
-                    time.sleep(10)
-            wait_for(wait_for_cluster, "Sleeping after stopping node", logger)
             hq_session = HQ()
             for site in env_config:
                 # Deleting site before trying to add it again
@@ -63,19 +99,7 @@ if __name__ == '__main__':
                                        mongo_user=mongo_config['hq_user'],
                                        mongo_host_port_array=mongo_config['mongo_service_name'])
                 logger.info(f"Attempting to delete site: {site}")
-                sites_id = mongo_client.get_sites_id()
-                remove_site_from_hq = hq_session.remove_site(sites_id)
-                disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
-                                                          username=env_config[0]['ssh']['username'],
-                                                          password=env_config[0]['ssh']['password'],
-                                                          pem_path=env_config[0]['ssh']['pem_path'])
-                delete_pod(ip=running_hq_node_ip,
-                           username=env_config[0]['ssh']['username'],
-                           password=env_config[0]['ssh']['password'],
-                           pem_path=env_config[0]['ssh']['pem_path'],
-                           pod_name="hq")
-                logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
-                logger.info(f"Delete site from site results: {disconnect_site}")
+                delete_site()
                 # Attempting to add site again after deletion
                 feature_toggle_master = hq_session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
                 logger.info(f"Connect to consul at {site['site_consul_ip']} "
@@ -114,7 +138,7 @@ if __name__ == '__main__':
                 time.sleep(10)
                 sync_status = mongo_client.site_sync_status()
             if args.add_single_subject:
-                wait_for(60, "Sleeping after before adding subject", logger)
+                wait_for(60, "Sleeping after adding subject", logger)
                 hq_session.add_subject()
                 logger.info("Subject added from HQ to site")
             logger.debug(f"Site subjects: {len(hq_session.get_subject_ids())}")
@@ -126,27 +150,8 @@ if __name__ == '__main__':
             except:
                 logger.error("Failed to get event from HQ")
             for site in env_config:
-                logger.info(f"Attempting to delete site: {site}")
-                sites_id = mongo_client.get_sites_id()
-                remove_site_from_hq = hq_session.remove_site(sites_id)
-                disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
-                                                          username=env_config[0]['ssh']['username'],
-                                                          password=env_config[0]['ssh']['password'],
-                                                          pem_path=env_config[0]['ssh']['pem_path'])
-                logger.info(f"Delete site from HQ results: {pformat(remove_site_from_hq)}")
-                logger.info(f"Delete site from site results: {disconnect_site}")
-            machine_mgmt.start(machine)
-            logger.info(f"Attempting to start machine: {machine} ")
-            machine_current_state = machine_mgmt.get(machine_mgmt)
-            logger.info(f"Machine status: {machine_current_state}")
-            while not machine_current_state == "on":
-                logger.info(f"sleeping 10 seconds waiting for {machine} to start")
-                machine_mgmt.start(machine)
-                logger.info(f"Attempting to start machine: {machine} ")
-                time.sleep(10)
-                machine_current_state = machine_mgmt.get(machine)
-                logger.info(f"Machine status: {machine_current_state}")
-            wait_for(wait_for_cluster, "Sleeping waiting for machine to start", logger)
+                delete_site()
+            start_machine(machine)
             iteration_number += 1
             logger.info(f"Finished iteration: {iteration_number}")
 
