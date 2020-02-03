@@ -22,8 +22,8 @@ class HQ(object):
                                     data={'username': 'admin', 'password': 'admin'})
                 assert res.status_code == 200
                 return res.json()['token']
-            except as e:
-                print(e)
+            except:
+                print(res)
 
 
 
