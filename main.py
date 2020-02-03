@@ -16,9 +16,16 @@ class HQ(object):
         }
 
     def _login(self):
-        res = requests.post('https://hq-api.tls.ai/master/login', data={'username': 'admin', 'password': 'admin'})
-        assert res.status_code == 200
-        return res.json()['token']
+        for attempts in range(1,10):
+            try:
+                res = requests.post('https://hq-api.tls.ai/master/login',
+                                    data={'username': 'admin', 'password': 'admin'})
+                assert res.status_code == 200
+                return res.json()['token']
+            except as e:
+                print(e)
+
+
 
     def add_subject(self, image="assets/subject.jpeg"):
         with open(image, 'rb') as image_object:
