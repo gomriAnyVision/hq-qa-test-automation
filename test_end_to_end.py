@@ -55,7 +55,7 @@ def stop_machine(machine):
 def start_machine(machine):
     machine_mgmt.start(machine)
     logger.info(f"Attempting to start machine: {machine} ")
-    machine_current_state = machine_mgmt.get(machine_mgmt)
+    machine_current_state = machine_mgmt.get(machine)
     logger.info(f"Machine status: {machine_current_state}")
     while not machine_current_state == "on":
         logger.info(f"sleeping 10 seconds waiting for {machine} to start")

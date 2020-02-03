@@ -22,7 +22,7 @@ class Logger(object):
 
 def test():
     logger = logging.getLogger("test")
-    logger.setLevel(logging.DEBUG or os.environ.get("DEBUGLEVEL"))
+    logger.setLevel(logging.DEBUG or os.environ.get("LOGLEVEL"))
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     file_handler = logging.FileHandler("execution.log")
     file_handler.setFormatter(formatter)
