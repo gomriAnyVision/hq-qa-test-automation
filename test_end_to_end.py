@@ -92,9 +92,9 @@ if __name__ == '__main__':
     delete_site(hq_machines["server5-vm-0"], hq_session)
     failed_to_add_site_counter = 0
     iteration_number = 0
-    logger.info("----------------------------------------------------------------\n"
-                "                   STARTING MAIN TEST LOOP                      \n"
-                "----------------------------------------------------------------")
+    logger.info("----------------------------------------------------------------")
+    logger.info("                   STARTING MAIN TEST LOOP                      ")
+    logger.info("----------------------------------------------------------------")
     while True:
         logger.info(f"Successfully iteration: {iteration_number} "
                     f"Failed iteration: {failed_to_add_site_counter}")
@@ -125,15 +125,7 @@ if __name__ == '__main__':
                     except:
                         logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']} "
                                      f"Attempting to run the automation again")
-                        machine_current_state = machine_mgmt.get(machine)
-                        while not machine_current_state == "on":
-                            logger.info(f"sleeping 10 seconds waiting for {machine} to start")
-                            machine_mgmt.start(machine)
-                            logger.info(f"Attempting to start machine: {machine} ")
-                            time.sleep(10)
-                            machine_current_state = machine_mgmt.get(machine)
-                            logger.debug(f"Machine state: {machine_current_state}")
-                        wait_for(wait_for_cluster, "Sleeping waiting for machine to start", logger)
+                        start_machine(machine)
                         failed_to_add_site_counter += 1
                         continue
             sync_status = {"status": ""}
@@ -157,11 +149,3 @@ if __name__ == '__main__':
             start_machine(machine)
             iteration_number += 1
             logger.info(f"Finished iteration: {iteration_number}")
-
-
-
-
-
-
-
-
