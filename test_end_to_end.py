@@ -11,9 +11,9 @@ from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
 hq_machines = {
-    "server5-vm-0": "192.168.122.186",
-    "server5-vm-1": "192.168.122.38",
-    "server5-vm-2": "192.168.122.190"
+    "server5-vm-0": "192.168.122.38",
+    "server5-vm-1": "192.168.122.190",
+    "server5-vm-2": "192.168.122.187"
 }
 
 
