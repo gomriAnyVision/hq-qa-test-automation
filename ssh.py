@@ -42,7 +42,8 @@ def get_hq_ip(ips, ip_of_stoped):
 
 
 def _get_pod_name(name):
-    return "kubectl get pod |grep hq | awk '{print $1}'" if name == "hq" \
+    return "kubectl get po --field-selector status.phase=Running  " \
+           "--selector=app=hq --no-headers  -o custom-columns=:metadata.name" if name == "hq" \
         else "kubectl get pod |grep api- | awk '{print $1}'"
 
 
