@@ -42,8 +42,8 @@ def get_hq_ip(ips, ip_of_stoped):
 
 
 def _get_pod_name(name):
-    return "kubectl get po --field-selector status.phase=Running  " \
-           "--selector=app=hq --no-headers  -o custom-columns=:metadata.name" if name == "hq" \
+    return "kubectl get po --selector=app=hq --no-headers " \
+           "| grep -iv Terminating | awk {'print $1'}" if name == "hq" \
         else "kubectl get pod |grep api- | awk '{print $1}'"
 
 
@@ -54,14 +54,15 @@ def delete_pod(**config):
     ssh.connect(hostname=config['ip'],
                 username=config['username'],
                 password=config['password'],
-                key_filename=None if config['pem_path'] == "" else config['pem_path'])
+                key_filename=None if config['pem_path'] == "" else config['pem_path'],
+                )
     print(f"Successfully connected to to {config['ip']}")
     command = _get_pod_name(name=config['pod_name'])
     stdin, stdout, stderr = ssh.exec_command(command)
     print(f"Command: {command}")
     hq_pod_name = stdout.read()
     sanitized_hq_pod_name = hq_pod_name.rstrip().decode("utf-8")
-    print(f"Sanitized hq pod name: {sanitized_hq_pod_name}")
+    print(f"Sanitized pod name: {sanitized_hq_pod_name}")
     stdin, stdout, stderr = ssh.exec_command(f"kubectl delete pod {sanitized_hq_pod_name}")
     print(stdout.read().rstrip().decode("utf-8"))
 
