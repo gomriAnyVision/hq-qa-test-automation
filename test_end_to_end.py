@@ -17,14 +17,14 @@ hq_machines = {
 }
 
 
-def delete_site(hq_session):
+def delete_site(alive_hq_node_ip, hq_connection):
     sites_id = mongo_client.get_sites_id()
-    remove_site_from_hq = hq_session.remove_site(sites_id)
+    remove_site_from_hq = hq_connection.remove_site(sites_id)
     disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
                                               username=env_config[0]['ssh']['username'],
                                               password=env_config[0]['ssh']['password'],
                                               pem_path=env_config[0]['ssh']['pem_path'])
-    delete_pod(ip=running_hq_node_ip,
+    delete_pod(ip=alive_hq_node_ip,
                username=env_config[0]['ssh']['username'],
                password=env_config[0]['ssh']['password'],
                pem_path=env_config[0]['ssh']['pem_path'],
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
     hq_session = HQ()
-    delete_site(hq_session)
+    delete_site(hq_machines["server5-vm-0"], hq_session)
     failed_to_add_site_counter = 0
     iteration_number = 0
     while True:
@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 # Deleting site before trying to add it again
 
                 logger.info(f"Attempting to delete site: {site}")
-                delete_site()
+                delete_site(running_hq_node_ip, hq_session)
                 # Attempting to add site again after deletion
                 feature_toggle_master = hq_session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
                 logger.info(f"Connect to consul at {site['site_consul_ip']} "
@@ -152,7 +152,7 @@ if __name__ == '__main__':
             except:
                 logger.error("Failed to get event from HQ")
             for site in env_config:
-                delete_site(hq_session)
+                delete_site(running_hq_node_ip, hq_session)
             start_machine(machine)
             iteration_number += 1
             logger.info(f"Finished iteration: {iteration_number}")
