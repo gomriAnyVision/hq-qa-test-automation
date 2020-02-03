@@ -54,6 +54,7 @@ def delete_pod(**config):
                 username=config['username'],
                 password=config['password'],
                 key_filename=None if config['pem_path'] == "" else config['pem_path'])
+    print(f"Successfully connected to to {config['ip']}")
     command = _get_pod_name(name=config['pod_name'])
     stdin, stdout, stderr = ssh.exec_command(command)
     hq_pod_name = stdout.read()

@@ -24,6 +24,7 @@ def delete_site(alive_hq_node_ip, hq_connection):
                                               username=env_config[0]['ssh']['username'],
                                               password=env_config[0]['ssh']['password'],
                                               pem_path=env_config[0]['ssh']['pem_path'])
+    logger.debug(f"Attempting connection to {alive_hq_node_ip}")
     delete_pod(ip=alive_hq_node_ip,
                username=env_config[0]['ssh']['username'],
                password=env_config[0]['ssh']['password'],
@@ -38,7 +39,7 @@ def stop_machine(machine):
         logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
         machine_mgmt.stop(machine)
         logger.info(f"Stopping {machine}")
-        while machine_mgmt.get(machine) == "on" or "RUNNING":
+        while machine_mgmt.get(machine) == "on" or machine_mgmt.get(machine) == "RUNNING":
             try:
                 machine_mgmt.get(machine)
                 if machine_mgmt.get(machine).status_code == 500:
@@ -96,9 +97,9 @@ if __name__ == '__main__':
     logger.info("                   STARTING MAIN TEST LOOP                      ")
     logger.info("----------------------------------------------------------------")
     while True:
-        logger.info(f"Successfully iteration: {iteration_number} "
-                    f"Failed iteration: {failed_to_add_site_counter}")
         for machine, ip in hq_machines.items():
+            logger.info(f"Successfully iteration: {iteration_number} "
+                        f"Failed iteration: {failed_to_add_site_counter}")
             stop_machine(machine)
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
             hq_session = HQ()
@@ -148,4 +149,3 @@ if __name__ == '__main__':
                 delete_site(running_hq_node_ip, hq_session)
             start_machine(machine)
             iteration_number += 1
-            logger.info(f"Finished iteration: {iteration_number}")
