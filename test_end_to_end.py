@@ -81,6 +81,9 @@ if __name__ == '__main__':
     machine_mgmt = MachineManagement(VmMgmt())
     wait_for_cluster = 600
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
+    mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
+                           mongo_user=mongo_config['hq_user'],
+                           mongo_host_port_array=mongo_config['mongo_service_name'])
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
     delete_site()
@@ -95,9 +98,7 @@ if __name__ == '__main__':
             hq_session = HQ()
             for site in env_config:
                 # Deleting site before trying to add it again
-                mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
-                                       mongo_user=mongo_config['hq_user'],
-                                       mongo_host_port_array=mongo_config['mongo_service_name'])
+
                 logger.info(f"Attempting to delete site: {site}")
                 delete_site()
                 # Attempting to add site again after deletion
