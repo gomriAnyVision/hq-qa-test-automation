@@ -79,7 +79,9 @@ if __name__ == '__main__':
     logger.info(f"Received config: {pformat(env_config)}")
     # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
     machine_mgmt = MachineManagement(VmMgmt())
-    wait_for_cluster = 600
+    wait_for_cluster = 150
+    """Cleaning up beofore starting test by removing all sites which are connected to the HQ
+    And starting all stopped nodes"""
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
                            mongo_user=mongo_config['hq_user'],
@@ -90,6 +92,9 @@ if __name__ == '__main__':
     delete_site(hq_machines["server5-vm-0"], hq_session)
     failed_to_add_site_counter = 0
     iteration_number = 0
+    logger.info("----------------------------------------------------------------\n"
+                "                   STARTING MAIN TEST LOOP                      \n"
+                "----------------------------------------------------------------")
     while True:
         logger.info(f"Successfully iteration: {iteration_number} "
                     f"Failed iteration: {failed_to_add_site_counter}")
@@ -98,10 +103,6 @@ if __name__ == '__main__':
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
             hq_session = HQ()
             for site in env_config:
-                # Deleting site before trying to add it again
-
-                logger.info(f"Attempting to delete site: {site}")
-                delete_site(running_hq_node_ip, hq_session)
                 # Attempting to add site again after deletion
                 feature_toggle_master = hq_session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
                 logger.info(f"Connect to consul at {site['site_consul_ip']} "
