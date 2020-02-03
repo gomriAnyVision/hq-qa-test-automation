@@ -1,5 +1,6 @@
 import json
 
+from Utils.utils import etc_hosts_insert_mongo_uri, etc_hosts_restore
 from pymongo import MongoClient
 from urllib.parse import quote_plus
 # from automation.devops_automation_infra.plugins.mongodb import MongoDB
@@ -56,13 +57,20 @@ class MongoDB(object):
         return site_ids
 
 def test():
-    path = "../config/config.json"
+    path = "../config/config_example.json"
     with open(path, 'rb') as conf_path:
         config = json.load(conf_path)
+    mongo_service_names = config['mongo']['mongo_service_url'].split(',')
+    mongo_for_etc_hosts = f"""{config['mongo']['mongo_zero_ip']}          {mongo_service_names[0]}\n{config['mongo']['mongo_one_ip']}           {mongo_service_names[1]}\n{config['mongo']['mongo_two_ip']}           {mongo_service_names[2]}
+    """
+
+    old_state = etc_hosts_insert_mongo_uri(mongo_for_etc_hosts)
     client = MongoDB(mongo_user="root",
                      mongo_password="M2Q1MDUzYjYyOGM4N2JhN2JmYjM1MTMz",
                      mongo_host_port_array=config["mongo"]['mongo_service_url'])
-    print(client.site_sync_status()['status'])
+    print(client.get_sites_id())
+    etc_hosts_restore(old_state)
+
 
 # def test_basic(base_config):
 #     base_config.hosts.host.MongoDB.connect()

@@ -1,17 +1,52 @@
-import os
 import json
 import argparse
 import string
 import random
 import time
+import os
 
 DEFAULT_CONFIG = "config/config.json"
+HOSTS_FILE = "/etc/hosts"
 
 
 def wait_for(time_to_wait, message, logger):
     logger.info(f"{message} for {time_to_wait} seconds")
     time.sleep(time_to_wait)
     logger.info(f"Finished sleeping {time_to_wait} seconds")
+
+
+def _etc_hosts_write(text):
+    with open(HOSTS_FILE, "w") as hosts_file:
+        for line in text:
+            hosts_file.write(line.decode("utf-8"))
+
+
+def _etc_hosts_append(text):
+    with open(HOSTS_FILE, "ab") as hosts_file:
+        try:
+            data = text.encode("utf-8")
+            hosts_file.write(b"\n" + data)
+        except (UnicodeDecodeError, AttributeError):
+            hosts_file.write(b"\n" + text)
+
+
+def _etc_hosts_read():
+    with open(HOSTS_FILE, "rb") as hosts_file:
+        return hosts_file.readlines()
+
+
+def etc_hosts_insert_mongo_uri(write):
+    state_before_change = _etc_hosts_read()
+    if isinstance(write, list):
+        for line in write:
+            _etc_hosts_append(line)
+    else:
+        _etc_hosts_append(write)
+    return state_before_change
+
+
+def etc_hosts_restore(history):
+    _etc_hosts_write(history)
 
 
 class Utils(object):
@@ -58,3 +93,7 @@ class Utils(object):
         letters = string.ascii_lowercase
         return ''.join(random.choice(letters) for i in range(string_length))
 
+
+if __name__ == '__main__':
+    old_state_etc = etc_hosts_insert_mongo_uri(a)
+    etc_hosts_restore(old_state_etc)
