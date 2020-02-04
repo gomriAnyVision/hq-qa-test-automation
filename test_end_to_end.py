@@ -3,22 +3,28 @@ import time
 from pprint import pformat
 from Utils.mongodb import MongoDB
 from Utils.logger import Logger
-from Utils.utils import Utils, wait_for
+from Utils.utils import Utils, wait_for, etc_hosts_restore, etc_hosts_insert_mongo_uri
 from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip
 from main import HQ
 from vm_management import MachineManagement, GcpInstanceMgmt, VmMgmt
 from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
-hq_machines = {
-    "server5-vm-0": "192.168.122.38",
-    "server5-vm-1": "192.168.122.190",
-    "server5-vm-2": "192.168.122.187"
-}
+
+def mongo_connection():
+    history = etc_hosts_insert_mongo_uri()
+    try:
+        wait_for(5, "Sleeping in order to edit /etc/hosts and connect to mongodb", logger)
+        result = MongoDB(mongo_password=mongo_config['hq_pass'],
+                         mongo_user=mongo_config['hq_user'],
+                         mongo_host_port_array=mongo_config['mongo_service_name'])
+    finally:
+        etc_hosts_restore(history)
+    return result
 
 
 def delete_site(alive_hq_node_ip, hq_connection):
-    sites_id = mongo_client.get_sites_id()
+    sites_id = client.get_sites_id()
     remove_site_from_hq = hq_connection.remove_site(sites_id)
     disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
                                               username=env_config[0]['ssh']['username'],
@@ -73,20 +79,21 @@ if __name__ == '__main__':
     Utils = Utils()
     logger = Logger.get_logger()
     args = Utils.get_args()
+    Utils.set_config(args.config)
     logger.info(f"Starting tests with {args}")
     mongo_config = Utils.get_config("mongo")
     logger.info(f"Received config: {pformat(mongo_config)}")
     env_config = Utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")
+    hq_machines = Utils.get_config("hq_machines")
+    logger.info(f"Received config: {pformat(hq_machines)}")
     # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
     machine_mgmt = MachineManagement(VmMgmt())
     wait_for_cluster = 150
     """Cleaning up beofore starting test by removing all sites which are connected to the HQ
     And starting all stopped nodes"""
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
-    mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
-                           mongo_user=mongo_config['hq_user'],
-                           mongo_host_port_array=mongo_config['mongo_service_name'])
+    client = mongo_connection()
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
     hq_session = HQ()
@@ -132,7 +139,7 @@ if __name__ == '__main__':
             sync_status = {"status": ""}
             while not sync_status['status'] == "synced":
                 time.sleep(10)
-                sync_status = mongo_client.site_sync_status()
+                sync_status = client.site_sync_status()
             if args.add_single_subject:
                 wait_for(60, "Sleeping after adding subject", logger)
                 hq_session.add_subject()

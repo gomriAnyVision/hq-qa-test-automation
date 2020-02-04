@@ -5,7 +5,7 @@ import random
 import time
 import os
 
-DEFAULT_CONFIG = "config/config.json"
+DEFAULT_CONFIG = "config.json"
 HOSTS_FILE = "/etc/hosts"
 
 
@@ -13,6 +13,17 @@ def wait_for(time_to_wait, message, logger):
     logger.info(f"{message} for {time_to_wait} seconds")
     time.sleep(time_to_wait)
     logger.info(f"Finished sleeping {time_to_wait} seconds")
+
+
+def _etc_mongo_text():
+    with open("config.json", "rb") as config :
+        mongo_config = json.load(config)['mongo']
+    mongo_service_names = mongo_config['mongo_service_name'].split(',')
+    mongo_for_etc_hosts = f"{mongo_config['mongo_zero_ip']}  {mongo_service_names[0]} \n" \
+                          f"{mongo_config['mongo_one_ip']}   {mongo_service_names[1]} \n" \
+                          f"{mongo_config['mongo_two_ip']}   {mongo_service_names[2]}"
+
+    return mongo_for_etc_hosts
 
 
 def _etc_hosts_write(text):
@@ -35,7 +46,8 @@ def _etc_hosts_read():
         return hosts_file.readlines()
 
 
-def etc_hosts_insert_mongo_uri(write):
+def etc_hosts_insert_mongo_uri():
+    write = _etc_mongo_text()
     state_before_change = _etc_hosts_read()
     if isinstance(write, list):
         for line in write:
@@ -53,7 +65,7 @@ class Utils(object):
     # TODO: config should receive a config file from args and have a default but never parse the path
     def __init__(self):
         self.config = ""
-        with open(os.path.abspath(os.path.join(DEFAULT_CONFIG)), "rb") as config_json:
+        with open(DEFAULT_CONFIG, "rb") as config_json:
             self.default_config = json.load(config_json)
 
     def set_config(self, config_path):
@@ -62,7 +74,6 @@ class Utils(object):
             return
         with open(config_path, "rb") as config_file:
             self.config = json.load(config_file)
-            return self.config
 
     def get_config(self, config_type):
         if not self.config:
@@ -95,5 +106,6 @@ class Utils(object):
 
 
 if __name__ == '__main__':
-    old_state_etc = etc_hosts_insert_mongo_uri(a)
-    etc_hosts_restore(old_state_etc)
+    old_etc_hosts = etc_hosts_insert_mongo_uri()
+    etc_hosts_restore(old_etc_hosts)
+    # etc_hosts_restore(old_state_etc)

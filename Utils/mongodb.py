@@ -57,7 +57,7 @@ class MongoDB(object):
         return site_ids
 
 def test():
-    path = "../config/config_example.json"
+    path = "../config.json"
     with open(path, 'rb') as conf_path:
         config = json.load(conf_path)
     mongo_service_names = config['mongo']['mongo_service_url'].split(',')
