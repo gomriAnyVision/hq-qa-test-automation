@@ -23,8 +23,28 @@ def mongo_connection():
     return result
 
 
+def get_sync_status():
+    history = etc_hosts_insert_mongo_uri()
+    try:
+        wait_for(5, "Sleeping in order to edit /etc/hosts and connect to mongodb", logger)
+        result = client.site_sync_status()
+    finally:
+        etc_hosts_restore(history)
+    return result
+
+
+def get_sites_id():
+    history = etc_hosts_insert_mongo_uri()
+    try:
+        wait_for(5, "Sleeping in order to edit /etc/hosts and connect to mongodb", logger)
+        result = client.get_sites_id()
+    finally:
+        etc_hosts_restore(history)
+    return result
+
+
 def delete_site(alive_hq_node_ip, hq_connection):
-    sites_id = client.get_sites_id()
+    sites_id = get_sites_id()
     remove_site_from_hq = hq_connection.remove_site(sites_id)
     disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
                                               username=env_config[0]['ssh']['username'],
@@ -139,7 +159,7 @@ if __name__ == '__main__':
             sync_status = {"status": ""}
             while not sync_status['status'] == "synced":
                 time.sleep(10)
-                sync_status = client.site_sync_status()
+                sync_status = get_sync_status()
             if args.add_single_subject:
                 wait_for(60, "Sleeping after adding subject", logger)
                 hq_session.add_subject()
