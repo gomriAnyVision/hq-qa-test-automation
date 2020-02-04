@@ -23,7 +23,7 @@ class HQ(object):
                 assert res.status_code == 200
                 return res.json()['token']
             except:
-                print(res)
+                print("Failed to login")
 
 
 
