@@ -27,6 +27,10 @@ def get_sync_status():
     history = etc_hosts_insert_mongo_uri()
     try:
         wait_for(5, "Sleeping in order to edit /etc/hosts and connect to mongodb", logger)
+        client = MongoDB(mongo_password=mongo_config['hq_pass'],
+                         mongo_user=mongo_config['hq_user'],
+                         mongo_host_port_array=mongo_config['mongo_service_name'])
+        wait_for(5, "Sleeping in order to edit /etc/hosts and connect to mongodb", logger)
         result = client.site_sync_status()
     finally:
         etc_hosts_restore(history)
@@ -36,6 +40,10 @@ def get_sync_status():
 def get_sites_id():
     history = etc_hosts_insert_mongo_uri()
     try:
+        wait_for(5, "Sleeping in order to edit /etc/hosts and connect to mongodb", logger)
+        client = MongoDB(mongo_password=mongo_config['hq_pass'],
+                         mongo_user=mongo_config['hq_user'],
+                         mongo_host_port_array=mongo_config['mongo_service_name'])
         wait_for(5, "Sleeping in order to edit /etc/hosts and connect to mongodb", logger)
         result = client.get_sites_id()
     finally:
