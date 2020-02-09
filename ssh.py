@@ -55,13 +55,11 @@ def delete_pod(**config):
     ssh.connect(hostname=config['ip'],
                 username=config['username'],
                 password=config['password'],
-                key_filename=None if config['pem_path'] == "" else config['pem_path'],
-                )
+                key_filename=None if config['pem_path'] == "" else config['pem_path'],)
     command = _get_pod_name(name=config['pod_name'])
     stdin, stdout, stderr = ssh.exec_command(command)
     hq_pod_name = stdout.read()
     sanitized_hq_pod_name = hq_pod_name.rstrip().decode("utf-8")
     stdin, stdout, stderr = ssh.exec_command(f"kubectl delete pod {sanitized_hq_pod_name}")
     print(stdout.read().rstrip().decode("utf-8"))
-
 

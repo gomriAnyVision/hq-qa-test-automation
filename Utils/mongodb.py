@@ -40,8 +40,11 @@ class MongoDB(object):
         return db.subjects.count()
 
     def site_sync_status(self):
+        print("Trying to get sync status")
         db = self._get_db("mapi")
+        print(f"Got DB {db}")
         site_list = self._get_list_sites(db)
+        print(f"Got site list: {site_list}")
         for site in site_list:
             return site['syncStatus']
 
