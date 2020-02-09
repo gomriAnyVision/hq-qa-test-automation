@@ -16,7 +16,7 @@ class HQ(object):
         }
 
     def _login(self):
-        for attempts in range(1,10):
+        for attempts in range(1, 10):
             try:
                 res = requests.post('https://hq-api.tls.ai/master/login',
                                     data={'username': 'admin', 'password': 'admin'})

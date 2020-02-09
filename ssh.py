@@ -22,6 +22,7 @@ def disconnect_site_from_hq_V2(host, username, password, key_filename):
     stdin, stdout, stderr = ssh.exec_command(f"bash /tmp/{script_path}")
     print(stdout.readlines())
 
+
 def disconnect_site_from_hq(**config):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())

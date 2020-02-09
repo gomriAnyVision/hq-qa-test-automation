@@ -8,7 +8,7 @@ class Logger(object):
     #  each file should create it's own log
     def __init__(self):
         self.logger = logging.getLogger()
-        self.logger.setLevel(logging.DEBUG or os.environ.get("DEBUGLEVEL"))
+        self.logger.setLevel(logging.INFO or os.environ.get("DEBUGLEVEL"))
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler = logging.FileHandler("execution.log")
         handler = logging.StreamHandler(sys.stdout)
