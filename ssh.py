@@ -63,3 +63,36 @@ def delete_pod(**config):
     stdin, stdout, stderr = ssh.exec_command(f"kubectl delete pod {sanitized_hq_pod_name}")
     print(stdout.read().rstrip().decode("utf-8"))
 
+
+def exec_get_site_id(**config):
+    command = """echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 --decode) |xargs -I '{}' kubectl exec -i mongodb-replicaset-1 -- bash -c "mongo -u root -p '{}' --host mongodb://mongodb-replicaset-0,mongodb-replicaset-1,mongodb-replicaset-2/admin?replicaSet=rs0 --quiet --eval \\\"db.getSiblingDB('mapi').sites.findOne()\\\"" | grep _id | sed -n -e 's/^.*ObjectId("//p' | sed -n -e 's/"),//p'"""
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(hostname=config['ip'],
+                username=config['username'],
+                password=config['password'],
+                key_filename=None if config['pem_path'] == "" else config['pem_path'], )
+    stdin, stdout, stderr = ssh.exec_command(command)
+    result = stdout.read().decode('utf-8')
+    return result
+
+
+def exec_get_sync_status(**config):
+    command = """ACTIVE_MONGO=$(kubectl get po --selector=app=mongodb-replicaset --no-headers| grep -iv Terminating | awk {'print $1'} | head -1)
+echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 --decode) | xargs -I '{}' kubectl exec -i $ACTIVE_MONGO -- bash -c "mongo -u root -p '{}' --host mongodb://mongodb-replicaset-0,mongodb-replicaset-1,mongodb-replicaset-2/admin?replicaSet=rs0 --quiet --eval \\\"db.getSiblingDB('mapi').sites.findOne()\\\"" | grep status"""
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(hostname=config['ip'],
+                username=config['username'],
+                password=config['password'],
+                key_filename=None if config['pem_path'] == "" else config['pem_path'], )
+    stdin, stdout, stderr = ssh.exec_command(command)
+    sanitized_output = stdout.read().rstrip().decode('utf-8')
+    split_sync = sanitized_output.split()
+    if split_sync:
+        result = split_sync[2].replace('"', '')
+        print(f"exec get sync status: {result == 'synced'}")
+        return result
+    elif not split_sync:
+        print(f"exec get sync status split_sync: {split_sync} was empty")
+
