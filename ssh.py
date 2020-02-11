@@ -1,4 +1,5 @@
 import paramiko
+import json
 
 file_path = "scripts/disconnect_site_from_hq.sh"
 script_path = "disconnect_site_from_hq.sh"
@@ -96,3 +97,19 @@ echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 
     elif not split_sync:
         print(f"exec get sync status split_sync: {split_sync} was empty")
 
+
+def gravity_cluster_status(**config):
+    command = "gravity status --output json"
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(hostname=config['ip'],
+                username=config['username'],
+                password=config['password'],
+                key_filename=None if config['pem_path'] == "" else config['pem_path'])
+    stdin, stdout, stderr = ssh.exec_command(command)
+    decode_out = stdout.read().decode("utf-8")
+    json_output = json.loads(decode_out)
+    cluster_status = []
+    for node in json_output['cluster']['nodes']:
+        cluster_status.append(node['status'])
+    return cluster_status if cluster_status else None
