@@ -3,52 +3,53 @@ import time
 from pprint import pformat
 from Utils.logger import Logger
 from Utils.utils import Utils, wait_for
-from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip, exec_get_site_id, exec_get_sync_status
+from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip, exec_get_site_id, exec_get_sync_status, gravity_cluster_status
 from main import HQ
 from vm_management import MachineManagement, VmMgmt
 from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
 
-def get_sync_status(alive_hq_node_ip):
-    result = None
-    result = exec_get_sync_status(ip=alive_hq_node_ip,
-                                  username=env_config[0]['ssh']['username'],
-                                  password=env_config[0]['ssh']['password'],
-                                  pem_path=env_config[0]['ssh']['pem_path'])
-    return result
+def get_sync_status():
+    if hq_session.get_sites():
+        _, result = hq_session.get_sites()
+        logger.warning("This currently only supports one site and need to be changed in case we want to test "
+                    "multiple sites with the same HQ")
+        if result:
+            return result[0]
 
 
-def get_sites_id(alive_hq_node_ip):
-    result = exec_get_site_id(ip=alive_hq_node_ip,
-                              username=env_config[0]['ssh']['username'],
-                              password=env_config[0]['ssh']['password'],
-                              pem_path=env_config[0]['ssh']['pem_path'])
-    return result
+
+def get_sites_id():
+    if hq_session.get_sites():
+        result, _ = hq_session.get_sites()
+        if result:
+            return result
 
 
 def delete_site(alive_hq_node_ip):
-    sites_id = get_sites_id(alive_hq_node_ip)
-    remove_site_from_hq = hq_session.remove_site(sites_id)
-    disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
-                                              username=env_config[0]['ssh']['username'],
-                                              password=env_config[0]['ssh']['password'],
-                                              pem_path=env_config[0]['ssh']['pem_path'])
-    logger.debug(f"Attempting connection to {alive_hq_node_ip}")
-    delete_pod(ip=alive_hq_node_ip,
-               username=env_config[0]['ssh']['username'],
-               password=env_config[0]['ssh']['password'],
-               pem_path=env_config[0]['ssh']['pem_path'],
-               pod_name="hq")
-    logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
-    logger.info(f"Delete site from site results: {disconnect_site}")
-
+    sites_id = get_sites_id()
+    if sites_id:
+        remove_site_from_hq = hq_session.remove_site(sites_id)
+        disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
+                                                  username=env_config[0]['ssh']['username'],
+                                                  password=env_config[0]['ssh']['password'],
+                                                  pem_path=env_config[0]['ssh']['pem_path'])
+        logger.debug(f"Attempting connection to {alive_hq_node_ip}")
+        delete_pod(ip=alive_hq_node_ip,
+                   username=env_config[0]['ssh']['username'],
+                   password=env_config[0]['ssh']['password'],
+                   pem_path=env_config[0]['ssh']['pem_path'],
+                   pod_name="hq")
+        logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
+        logger.info(f"Delete site from site results: {disconnect_site}")
+    logger.info("No sites to delete")
 
 def stop_machine(machine):
     if len(machine_mgmt.list_started_machine()) == 4:
         logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
         machine_mgmt.stop(machine)
-        logger.info(f"Stopping {machine}")
+        logger.info(f"Stopping machine: {machine}")
         while machine_mgmt.get(machine) == "on" or machine_mgmt.get(machine) == "RUNNING":
             try:
                 machine_mgmt.get(machine)
@@ -60,7 +61,8 @@ def stop_machine(machine):
             logger.info(f"{machine} is still up even though it should have stopped sleeping "
                         f"for another 10 seconds")
             time.sleep(10)
-    wait_for(wait_for_cluster, "Sleeping after stopping node", logger)
+    if healthy_cluster:
+        wait_for(wait_for_cluster, "Sleeping after stopping node", logger)
 
 
 def start_machine(machine):
@@ -78,6 +80,18 @@ def start_machine(machine):
     wait_for(wait_for_cluster, "Sleeping waiting for machine to start", logger)
 
 
+def healthy_cluster(cluster, health_status, minimum_nodes=2):
+    cluster_status = None
+    while cluster_status != "HEALTHY":
+        if cluster and gravity_cluster_status().count(health_status) >= minimum_nodes:
+            cluster_status = "HEALTHY"
+            return True
+        else:
+            logger.info(f"Cluster status was: {cluster} - UNHEALTHY")
+            return False
+
+
+
 if __name__ == '__main__':
     Logger = Logger()
     Utils = Utils()
@@ -93,14 +107,14 @@ if __name__ == '__main__':
     logger.info(f"Received config: {pformat(hq_machines)}")
     # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
     machine_mgmt = MachineManagement(VmMgmt())
-    wait_for_cluster = 150
+    wait_for_cluster = 120
     """Cleaning up beofore starting test by removing all sites which are connected to the HQ
     And starting all stopped nodes"""
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
     hq_session = HQ()
-    delete_site(hq_machines["server5-vm-0"], hq_session)
+    delete_site(hq_machines["server5-vm-0"])
     failed_to_add_site_counter = 0
     iteration_number = 0
     logger.info("----------------------------------------------------------------")
@@ -143,7 +157,7 @@ if __name__ == '__main__':
             sync_status = ""
             while not sync_status == "synced":
                 time.sleep(10)
-                sync_status = get_sync_status(running_hq_node_ip)
+                sync_status = get_sync_status()
             if args.add_single_subject:
                 wait_for(60, "Sleeping after adding subject", logger)
                 hq_session.add_subject()
@@ -157,6 +171,6 @@ if __name__ == '__main__':
             except:
                 logger.error("Failed to get event from HQ")
             for site in env_config:
-                delete_site(running_hq_node_ip, hq_session)
+                delete_site(running_hq_node_ip)
             start_machine(machine)
             iteration_number += 1

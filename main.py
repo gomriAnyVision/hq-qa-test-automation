@@ -85,8 +85,12 @@ class HQ(object):
         return subject_ids
 
     def remove_site(self, site_id):
-        if len(site_id) > 0:
+        if isinstance(site_id, list):
+            print("remove site in case of list this currently only support the first index of list")
             res = requests.delete(f"https://hq-api.tls.ai/master/sites/{site_id[0]}", headers=self.request_headers)
+            return res.json()
+        if len(site_id) > 0:
+            res = requests.delete(f"https://hq-api.tls.ai/master/sites/{site_id}", headers=self.request_headers)
             return res.json()
         else:
             return
@@ -100,11 +104,23 @@ class HQ(object):
             "title": f"site {config['site_internal_ip']}",
             "storageUri": f"https://{config['hq_url']}/r/{config['site_extarnel_ip']}"
         }
-        # logging.info(f"Attempting to add site withth payload: {pformat(payload)}")
         res = requests.post("https://hq-api.tls.ai/master/sites", headers=self.request_headers,
                             data=json.dumps(payload))
         print(res)
         return res.json()['_id']
+
+    def get_sites(self):
+        """
+        positions 0 - sites_ids: all the sites which are connected to the HQ's ids
+        positions 1 - site_sync_status: all the the sites which are connected to the HQ's sync status'
+        """
+        res = requests.get("https://hq-api.tls.ai/master/sites?withCameras=true", headers=self.request_headers)
+        if res.json() and res.json() != []:
+            sites_ids = [site_id['_id'] for site_id in res.json()]
+            site_sync_status = [sync_status["syncStatus"].get('status') for sync_status in res.json()]
+            if site_sync_status and sites_ids:
+                return sites_ids, site_sync_status
+
 
     def consul_set(self, key, value, config):
         data = value
