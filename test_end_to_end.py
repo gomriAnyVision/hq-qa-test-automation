@@ -19,7 +19,6 @@ def get_sync_status():
             return result[0]
 
 
-
 def get_sites_id():
     if hq_session.get_sites():
         result, _ = hq_session.get_sites()
@@ -45,6 +44,7 @@ def delete_site(alive_hq_node_ip):
         logger.info(f"Delete site from site results: {disconnect_site}")
     logger.info("No sites to delete")
 
+
 def stop_machine(machine):
     if len(machine_mgmt.list_started_machine()) == 4:
         logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
@@ -61,8 +61,23 @@ def stop_machine(machine):
             logger.info(f"{machine} is still up even though it should have stopped sleeping "
                         f"for another 10 seconds")
             time.sleep(10)
-    if healthy_cluster:
-        wait_for(wait_for_cluster, "Sleeping after stopping node", logger)
+    wait_for(wait_for_cluster, "Sleeping after stopping node", logger)
+    logger.info("Checking if cluster is healthy")
+    if healthy_cluster("healthy"):
+        logger.info(f"Cluster health: {healthy_cluster}")
+
+
+def running_hq_node():
+    # TODO: Refactor this IMMEDIATELLY IT SUCKS
+    vm_mgr = VmMgmt()
+    all_machines = vm_mgr.machine_names()
+    running_node_ips = []
+    for index, machine in enumerate(all_machines):
+        if machine["status"] == "on" and machine['machine_name'] in list(hq_machines.keys()) and len(running_node_ips) < 1:
+            running_node_ips.append(list(hq_machines.values())[index])
+    logger.info(f"Function running_hq_node returned: {running_node_ips[0]}")
+    return running_node_ips[0]
+
 
 
 def start_machine(machine):
@@ -80,15 +95,22 @@ def start_machine(machine):
     wait_for(wait_for_cluster, "Sleeping waiting for machine to start", logger)
 
 
-def healthy_cluster(cluster, health_status, minimum_nodes=2):
+def healthy_cluster(health_status, minimum_nodes=2):
     cluster_status = None
-    while cluster_status != "HEALTHY":
-        if cluster and gravity_cluster_status().count(health_status) >= minimum_nodes:
+    hq_node_ip = running_hq_node()
+    logger.info(f"Started waiting for cluster to be healthy")
+    while not cluster_status:
+        current_cluster_status = gravity_cluster_status(ip=hq_node_ip,
+                                                       username=env_config[0]['ssh']['username'],
+                                                       password=env_config[0]['ssh']['password'],
+                                                       pem_path=env_config[0]['ssh']['pem_path'],)
+        if current_cluster_status.count(health_status) >= minimum_nodes:
             cluster_status = "HEALTHY"
+            logger.info("Finished waiting for cluster to be healthy")
             return True
         else:
-            logger.info(f"Cluster status was: {cluster} - UNHEALTHY")
-            return False
+            logger.debug(f"Cluster status was: {current_cluster_status} - UNHEALTHY")
+            wait_for(10,"Waiting 10 seconds before checking cluster status again", logger)
 
 
 
@@ -125,6 +147,8 @@ if __name__ == '__main__':
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter}")
             stop_machine(machine)
+            logger.info(f"Finished stopping machine: {machine, ip}")
+            # TODO: replace this fucntion with the running_hq_node function
             running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
             hq_session = HQ()
             hq_session.get_sites()
@@ -154,10 +178,13 @@ if __name__ == '__main__':
                         start_machine(machine)
                         failed_to_add_site_counter += 1
                         continue
+                    continue
             sync_status = ""
             while not sync_status == "synced":
                 time.sleep(10)
                 sync_status = get_sync_status()
+                logger.debug(f"Sync status was: {sync_status} sleeping 10 seconds and trying again")
+            logger.info(f"Site sync status: {sync_status}")
             if args.add_single_subject:
                 wait_for(60, "Sleeping after adding subject", logger)
                 hq_session.add_subject()

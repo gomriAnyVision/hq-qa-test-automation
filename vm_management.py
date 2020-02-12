@@ -61,7 +61,7 @@ class VmMgmt(object):
         else:
             return res
 
-    def list_machines(self):
+    def machine_list(self):
         allocator_url = self._get_allocator_url()
         res = requests.get(allocator_url)
         assert res.status_code == 200
@@ -69,14 +69,14 @@ class VmMgmt(object):
 
     def list_started_machine(self):
         all_machines_status = []
-        for machine_name, values in self.list_machines().items():
+        for machine_name, values in self.machine_list().items():
             all_machines_status.append(values['status'])
         only_on_machines = list(filter(lambda status: status == 'on', all_machines_status))
         return list(only_on_machines)
 
     def machine_names(self):
         all_machines_names = []
-        for machine_name, values in self.list_machines().items():
+        for machine_name, values in self.machine_list().items():
             all_machines_names.append({"machine_name": machine_name, "status": values['status']})
         return all_machines_names
 
@@ -100,8 +100,8 @@ class GcpInstanceMgmt(object):
         self.zone = zone
 
     def list_machines(self, zone="europe-west1-d", filter_by=""):
-        result = self.service.instances().list_machines(project="anyvision-training", zone=zone,
-                                                        filter=filter_by).execute()
+        result = self.service.instances()._list_machines(project="anyvision-training", zone=zone,
+                                                         filter=filter_by).execute()
         return result['items'] if 'items' in result else None
 
     # TODO: get the name and zone of the machines to update dynamically
