@@ -18,15 +18,15 @@
     }
     }],
     "vm": [{
-        "site_internal_ip": "192.168.122.186",
-        "site_extarnel_ip": "192.168.122.186",
+        "site_internal_ip": "192.168.122.189",
+        "site_extarnel_ip": "192.168.122.189",
         "hq_api_url": "hq-api.tls.ai",
         "hq_url": "hq.tls.ai",
-        "site_consul_ip": "192.168.122.186",
+        "site_consul_ip": "192.168.122.189",
         "ssh": {
-            "username": "",
+            "username": "root",
             "pem_path": "",
-            "password": ""
+            "password": "root"
     }
     }],
     "allocator": {
@@ -44,7 +44,7 @@
     },
     "hq_machines": {
         "server5-vm-0": "192.168.122.38",
-        "server5-vm-1": "192.168.122.190",
-        "server5-vm-2": "192.168.122.187"
+        "server5-vm-2": "192.168.122.191",
+        "server5-vm-3": "192.168.122.188"
     }
 }

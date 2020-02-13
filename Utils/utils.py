@@ -90,12 +90,12 @@ class Utils(object):
         parser.add_argument("--delete_all_subjects", help="True - Delete all subjects from HQ")
         parser.add_argument("--run_site_tasks", help="True - Should the script attempt to connect a site and sync it"
                                                      "(feature toggle master etc...)")
-        parser.add_argument("--connect_to_hq_mongo", help="True - Attempt to connect to the mongo of the HQ")
         parser.add_argument("--recognition_event", help="True - Run the recognition event test")
         parser.add_argument("--config", help="Path to config file look at example file in config/config_example.json"
                                              "to see what it should contain. config must be in the "
                                              "config/{you're config}.json",
                             default=os.path.abspath(os.path.join(__file__, '../../config/config.json')))
+        parser.add_argument("--")
         parser.add_argument("--remove_site", help="True - Deletes site")
         return parser.parse_args()
 
@@ -105,7 +105,7 @@ class Utils(object):
         return ''.join(random.choice(letters) for i in range(string_length))
 
 
-if __name__ == '__main__':
-    old_etc_hosts = etc_hosts_insert_mongo_uri()
-    etc_hosts_restore(old_etc_hosts)
-    # etc_hosts_restore(old_state_etc)
+def get_default_config():
+    with open("./config.json", "rb") as config:
+        return json.load(config)
+
