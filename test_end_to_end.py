@@ -3,9 +3,9 @@ import time
 from pprint import pformat
 from Utils.logger import Logger
 from Utils.utils import Utils, wait_for
-from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip, exec_get_site_id, exec_get_sync_status, gravity_cluster_status
+from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip
 from main import HQ
-from vm_management import MachineManagement, VmMgmt
+from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, running_hq_node
 from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
@@ -15,6 +15,7 @@ def get_sync_status():
         _, result = hq_session.get_sites()
         logger.warning("This currently only supports one site and need to be changed in case we want to test "
                     "multiple sites with the same HQ")
+        logger.info(f"Current sync status :{result}")
         if result:
             return result[0]
 
@@ -45,75 +46,6 @@ def delete_site(alive_hq_node_ip):
     logger.info("No sites to delete")
 
 
-def stop_machine(machine):
-    if len(machine_mgmt.list_started_machine()) == 4:
-        logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
-        machine_mgmt.stop(machine)
-        logger.info(f"Stopping machine: {machine}")
-        while machine_mgmt.get(machine) == "on" or machine_mgmt.get(machine) == "RUNNING":
-            try:
-                machine_mgmt.get(machine)
-                if machine_mgmt.get(machine).status_code == 500:
-                    logger.info(f"The Machine {machine} was already stopped")
-                    break
-            except:
-                pass
-            logger.info(f"{machine} is still up even though it should have stopped sleeping "
-                        f"for another 10 seconds")
-            time.sleep(10)
-    wait_for(wait_for_cluster, "Sleeping after stopping node", logger)
-    logger.info("Checking if cluster is healthy")
-    if healthy_cluster("healthy"):
-        logger.info(f"Cluster health: {healthy_cluster}")
-
-
-def running_hq_node():
-    # TODO: Refactor this IMMEDIATELLY IT SUCKS
-    vm_mgr = VmMgmt()
-    all_machines = vm_mgr.machine_names()
-    running_node_ips = []
-    for index, machine in enumerate(all_machines):
-        if machine["status"] == "on" and machine['machine_name'] in list(hq_machines.keys()) and len(running_node_ips) < 1:
-            running_node_ips.append(list(hq_machines.values())[index])
-    logger.info(f"Function running_hq_node returned: {running_node_ips[0]}")
-    return running_node_ips[0]
-
-
-
-def start_machine(machine):
-    machine_mgmt.start(machine)
-    logger.info(f"Attempting to start machine: {machine} ")
-    machine_current_state = machine_mgmt.get(machine)
-    logger.info(f"Machine status: {machine_current_state}")
-    while not machine_current_state == "on":
-        logger.info(f"sleeping 10 seconds waiting for {machine} to start")
-        machine_mgmt.start(machine)
-        logger.info(f"Attempting to start machine: {machine} ")
-        time.sleep(10)
-        machine_current_state = machine_mgmt.get(machine)
-        logger.info(f"Machine status: {machine_current_state}")
-    wait_for(wait_for_cluster, "Sleeping waiting for machine to start", logger)
-
-
-def healthy_cluster(health_status, minimum_nodes=2):
-    cluster_status = None
-    hq_node_ip = running_hq_node()
-    logger.info(f"Started waiting for cluster to be healthy")
-    while not cluster_status:
-        current_cluster_status = gravity_cluster_status(ip=hq_node_ip,
-                                                       username=env_config[0]['ssh']['username'],
-                                                       password=env_config[0]['ssh']['password'],
-                                                       pem_path=env_config[0]['ssh']['pem_path'],)
-        if current_cluster_status.count(health_status) >= minimum_nodes:
-            cluster_status = "HEALTHY"
-            logger.info("Finished waiting for cluster to be healthy")
-            return True
-        else:
-            logger.debug(f"Cluster status was: {current_cluster_status} - UNHEALTHY")
-            wait_for(10,"Waiting 10 seconds before checking cluster status again", logger)
-
-
-
 if __name__ == '__main__':
     Logger = Logger()
     Utils = Utils()
@@ -127,16 +59,16 @@ if __name__ == '__main__':
     logger.info(f"Received config: {pformat(env_config)}")
     hq_machines = Utils.get_config("hq_machines")
     logger.info(f"Received config: {pformat(hq_machines)}")
-    # gcp_instance_mgmt = GcpInstanceMgmt(zone=machines_info['zone'])
     machine_mgmt = MachineManagement(VmMgmt())
     wait_for_cluster = 120
-    """Cleaning up beofore starting test by removing all sites which are connected to the HQ
+    """Cleaning up before starting test by removing all sites which are connected to the HQ
     And starting all stopped nodes"""
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
     hq_session = HQ()
-    delete_site(hq_machines["server5-vm-0"])
+    if not args.remove_site:
+        delete_site(hq_machines["server5-vm-0"])
     failed_to_add_site_counter = 0
     iteration_number = 0
     logger.info("----------------------------------------------------------------")
@@ -146,10 +78,10 @@ if __name__ == '__main__':
         for machine, ip in hq_machines.items():
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter}")
-            stop_machine(machine)
+            stop_machine(machine, wait_for_cluster, logger, args.check_health)
             logger.info(f"Finished stopping machine: {machine, ip}")
             # TODO: replace this fucntion with the running_hq_node function
-            running_hq_node_ip = get_hq_ip(list(hq_machines.values()), ip)
+            running_hq_node_ip = running_hq_node(logger)
             hq_session = HQ()
             hq_session.get_sites()
             for site in env_config:
@@ -175,7 +107,7 @@ if __name__ == '__main__':
                     except:
                         logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']} "
                                      f"Attempting to run the automation again")
-                        start_machine(machine)
+                        start_machine(machine, wait_for_cluster, logger)
                         failed_to_add_site_counter += 1
                         continue
                     continue
@@ -197,7 +129,7 @@ if __name__ == '__main__':
                 verify_recognition_event(logger, sleep=60)
             except:
                 logger.error("Failed to get event from HQ")
-            for site in env_config:
+            if not args.remove_site:
                 delete_site(running_hq_node_ip)
-            start_machine(machine)
+            start_machine(machine, wait_for_cluster, logger)
             iteration_number += 1

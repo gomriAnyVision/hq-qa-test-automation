@@ -113,3 +113,15 @@ def gravity_cluster_status(**config):
     for node in json_output['cluster']['nodes']:
         cluster_status.append(node['status'])
     return cluster_status if cluster_status else None
+
+def k8s_cluster_status(**config):
+    command = "kubectl get no --no-headers | grep -iv NotReady | wc -l"
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(hostname=config['ip'],
+                username=config['username'],
+                password=config['password'],
+                key_filename=None if config['pem_path'] == "" else config['pem_path'])
+    stdin, stdout, stderr = ssh.exec_command(command)
+    running_nodes = stdout.read().decode("utf-8")
+    return running_nodes
