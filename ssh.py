@@ -1,5 +1,11 @@
+import sys
+
 import paramiko
 import json
+import time
+import logging
+
+from Utils.utils import get_default_config, wait_for
 
 file_path = "scripts/disconnect_site_from_hq.sh"
 script_path = "disconnect_site_from_hq.sh"
@@ -36,11 +42,6 @@ def disconnect_site_from_hq(**config):
     sftp.put(f"{file_path}", f"/tmp/{script_path}", confirm=True)
     stdin, stdout, stderr = ssh.exec_command(f"bash /tmp/{script_path}")
     print(stdout.readlines())
-
-
-def get_hq_ip(ips, ip_of_stoped):
-    ips.remove(ip_of_stoped)
-    return ips[0]
 
 
 def _get_pod_name(name):
@@ -114,6 +115,7 @@ def gravity_cluster_status(**config):
         cluster_status.append(node['status'])
     return cluster_status if cluster_status else None
 
+
 def k8s_cluster_status(**config):
     command = "kubectl get no --no-headers | grep -iv NotReady | wc -l"
     ssh = paramiko.SSHClient()
@@ -125,3 +127,78 @@ def k8s_cluster_status(**config):
     stdin, stdout, stderr = ssh.exec_command(command)
     running_nodes = stdout.read().decode("utf-8")
     return running_nodes
+
+
+def consul_healthy(logger, **kwargs):
+    kwargs['timeout'] = None
+    timeout=kwargs['timeout'] if kwargs['timeout'] else 60
+    stop_time = time.time() + timeout
+    command = """kubectl exec -ti $(kubectl get pod -l=app=hq | grep -v Terminating | grep -i 2/2 | awk {'print $1'}
+) -c api-master -- curl http://consul-server-client:8500/v1/status/leader"""
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh_config = config['vm'][0]['ssh']
+    ssh.connect(hostname=kwargs['ip'],
+                username=ssh_config['username'],
+                password=ssh_config['password'],
+                key_filename=None if ssh_config['pem_path'] == "" else kwargs['pem_path'])
+    while not time.time() > stop_time:
+        stdin, stdout, stderr = ssh.exec_command(command)
+        result = stdout.read().decode('utf-8')
+        if not result:
+            wait_for(10, "Sleeping while consul isn't healthy", logger)
+        else:
+            return True
+    else:
+        logger.error(f"Consul was unhealthy after {timeout} seconds")
+        return False
+
+
+def _ssh_connect(hostname):
+    config = get_default_config()
+    ssh_config = config['vm'][0]['ssh']
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(hostname=hostname,
+                username=ssh_config['username'],
+                password=ssh_config['password'],
+                key_filename=None if ssh_config['pem_path'] == "" else ssh_config['pem_path'])
+    return ssh
+
+
+def hq_pod_healthy(logger, **kwargs):
+    kwargs['timeout'] = None
+    timeout = kwargs['timeout'] if kwargs['timeout'] else 60
+    timeout = time.time() + timeout
+    command = "kubectl get pod -l=app=hq | grep -v Terminating | grep -i 2/2 | awk {\'print $1\'}"
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh_config = config['vm'][0]['ssh']
+    ssh.connect(hostname=kwargs['ip'],
+                username=ssh_config['username'],
+                password=ssh_config['password'],
+                key_filename=None if ssh_config['pem_path'] == "" else kwargs['pem_path'])
+    while not time.time() > timeout:
+        stdin, stdout, stderr = ssh.exec_command(command)
+        result = stdout.read().decode("utf-8")
+        if result:
+            return True
+        else:
+            wait_for(10, "Sleeping while hq isn't healthy", logger)
+    return False
+
+
+def mongo_has_primary(logger, ip, timeout=60):
+    timeout = time.time() + timeout
+    command = """
+    echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 --decode) | xargs -I '{}' kubectl exec -i $ACTIVE_MONGO -- bash -c "mongo -u root -p '{}' --host mongodb://mongodb-replicaset-0,mongodb-replicaset-1,mongodb-replicaset-2/admin?replicaSet=rs0 --quiet --eval \\\"rs.status()\\\""  | grep -i primary
+    """
+    ssh = _ssh_connect(hostname=ip)
+    while not time.time() > timeout:
+        stdin, stdout, stderr = ssh.exec_command(command)
+        result = stdout.read().decode("utf-8")
+        if result:
+            return True
+        else:
+            wait_for(10, "Sleeping while mongo hasn't selected primary isn't healthy", ssh_logger)
+    return False

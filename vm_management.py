@@ -6,8 +6,7 @@ from pprint import pprint
 from googleapiclient import discovery
 
 from Utils.utils import Utils, wait_for, get_default_config
-from Utils.logger import Logger
-from ssh import gravity_cluster_status, k8s_cluster_status
+from ssh import gravity_cluster_status, k8s_cluster_status, hq_pod_healthy, consul_healthy, mongo_has_primary
 
 
 class MachineManagement(object):
@@ -128,6 +127,7 @@ class GcpInstanceMgmt(object):
 machine_mgmt = MachineManagement(VmMgmt())
 config = get_default_config()
 
+
 def start_machine(machine, wait_timeout, logger):
     machine_mgmt.start(machine)
     logger.info(f"Attempting to start machine: {machine} ")
@@ -137,11 +137,14 @@ def start_machine(machine, wait_timeout, logger):
         logger.info(f"sleeping 10 seconds waiting for {machine} to start")
         machine_mgmt.start(machine)
         logger.info(f"Attempting to start machine: {machine} ")
-        wait_for(10,"Sleeping 10 seconds waiting for machine to start", logger)
+        wait_for(10, "Sleeping 10 seconds waiting for machine to start", logger)
         machine_current_state = machine_mgmt.get(machine)
         logger.info(f"Machine status: {machine_current_state}")
     wait_for(wait_timeout, "Sleeping waiting for machine to start", logger)
 
+
+def running_hq_node_v2():
+    pass
 
 def running_hq_node(logger):
     # TODO: Refactor this IMMEDIATELLY IT SUCKS
@@ -150,7 +153,8 @@ def running_hq_node(logger):
     all_machines = vm_mgr.machine_names()
     running_node_ips = []
     for index, machine in enumerate(all_machines):
-        if machine["status"] == "on" and machine['machine_name'] in list(hq_machines.keys()) and len(running_node_ips) < 1:
+        if machine["status"] == "on" and machine['machine_name'] in list(hq_machines.keys()) and len(
+                running_node_ips) < 1:
             running_node_ips.append(list(hq_machines.values())[index])
     logger.info(f"Function running_hq_node returned: {running_node_ips[0]}")
     return running_node_ips[0]
@@ -158,26 +162,28 @@ def running_hq_node(logger):
 
 def healthy_cluster(health_status, logger, minimum_nodes_running=2):
     cluster_status = None
-    hq_node_ip = running_hq_node(logger)
     ssh_config = config['vm'][0]['ssh']
     logger.info(f"Started waiting for cluster to be healthy")
+    hq_ip=running_hq_node(logger)
     while not cluster_status:
-        current_cluster_status = gravity_cluster_status(ip=hq_node_ip,
+        current_cluster_status = gravity_cluster_status(ip=hq_ip,
                                                         username=ssh_config['username'],
                                                         password=ssh_config['password'],
-                                                        pem_path=ssh_config['pem_path'],)
-        ready_pods_count = k8s_cluster_status(ip=hq_node_ip,
-                                              username=ssh_config['username'],
-                                              password=ssh_config['password'],
-                                              pem_path=ssh_config['pem_path'],)
-        if current_cluster_status.count(health_status) >= minimum_nodes_running or\
-                int(ready_pods_count) >= minimum_nodes_running:
-            cluster_status = "HEALTHY"
+                                                        pem_path=ssh_config['pem_path'], )
+        ready_nodes_count = k8s_cluster_status(ip=hq_ip,
+                                               username=ssh_config['username'],
+                                               password=ssh_config['password'],
+                                               pem_path=ssh_config['pem_path'], )
+        mongo_has_primary(logger, ip=hq_ip)
+        if current_cluster_status.count(health_status) >= minimum_nodes_running or \
+                int(ready_nodes_count) >= minimum_nodes_running and \
+                hq_pod_healthy(logger, ip=hq_ip) and \
+                consul_healthy(logger, ip=hq_ip):
             logger.info("Finished waiting for cluster to be healthy")
             return True
         else:
             logger.debug(f"Cluster status was: {current_cluster_status} - UNHEALTHY")
-            wait_for(10,"Waiting 10 seconds before checking cluster status again", logger)
+            wait_for(10, "Waiting 10 seconds before checking cluster status again", logger)
 
 
 def stop_machine(machine, wait_timeout, logger, **flags):
@@ -200,4 +206,3 @@ def stop_machine(machine, wait_timeout, logger, **flags):
     logger.info("Checking if cluster is healthy")
     if healthy_cluster("healthy", logger) and flags.get("health_check", None):
         logger.info(f"Cluster healthy")
-

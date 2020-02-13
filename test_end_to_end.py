@@ -1,9 +1,10 @@
+import sys
 import time
 
 from pprint import pformat
 from Utils.logger import Logger
 from Utils.utils import Utils, wait_for
-from ssh import disconnect_site_from_hq, delete_pod, get_hq_ip
+from ssh import disconnect_site_from_hq, delete_pod
 from main import HQ
 from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, running_hq_node
 from socketio_client import verify_recognition_event
@@ -78,10 +79,11 @@ if __name__ == '__main__':
         for machine, ip in hq_machines.items():
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter}")
-            stop_machine(machine, wait_for_cluster, logger, args.check_health)
-            logger.info(f"Finished stopping machine: {machine, ip}")
+            stop_machine(machine, wait_for_cluster, logger, health_check=args.do_health_check)
             # TODO: replace this fucntion with the running_hq_node function
             running_hq_node_ip = running_hq_node(logger)
+            # TODO: Check consul cluster health
+            # TODO: Check if hq pod is ready
             hq_session = HQ()
             hq_session.get_sites()
             for site in env_config:
@@ -129,6 +131,7 @@ if __name__ == '__main__':
                 verify_recognition_event(logger, sleep=60)
             except:
                 logger.error("Failed to get event from HQ")
+                sys.exit(0)
             if not args.remove_site:
                 delete_site(running_hq_node_ip)
             start_machine(machine, wait_for_cluster, logger)
