@@ -12,23 +12,16 @@ script_path = "disconnect_site_from_hq.sh"
 
 # TODO: Find to know if your running on cloud or VM without user input
 
-def is_cloud():
-    pass
+config = get_default_config()
 
-
-def disconnect_site_from_hq_V2(host, username, password, key_filename):
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    ssh.connect(hostname=host,
-                username=None if is_cloud() else username,
-                password=None if is_cloud() else username,
-                key_filename=None if config['pem_path'] == "" else config['pem_path'])
-    sftp = ssh.open_sftp()
-    sftp.put(f"{file_path}", f"/tmp/{script_path}", confirm=True)
-    stdin, stdout, stderr = ssh.exec_command(f"bash /tmp/{script_path}")
-    print(stdout.readlines())
-
+ssh_logger = logging.getLogger()
+ssh_logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler = logging.FileHandler("execution.log")
+handler = logging.StreamHandler(sys.stdout)
+file_handler.setFormatter(formatter)
+ssh_logger.addHandler(file_handler)
+ssh_logger.addHandler(handler)
 
 def disconnect_site_from_hq(**config):
     ssh = paramiko.SSHClient()
@@ -126,6 +119,7 @@ def k8s_cluster_status(**config):
                 key_filename=None if config['pem_path'] == "" else config['pem_path'])
     stdin, stdout, stderr = ssh.exec_command(command)
     running_nodes = stdout.read().decode("utf-8")
+    print(running_nodes)
     return running_nodes
 
 
@@ -145,6 +139,7 @@ def consul_healthy(logger, **kwargs):
     while not time.time() > stop_time:
         stdin, stdout, stderr = ssh.exec_command(command)
         result = stdout.read().decode('utf-8')
+        print(result)
         if not result:
             wait_for(10, "Sleeping while consul isn't healthy", logger)
         else:
@@ -184,14 +179,15 @@ def hq_pod_healthy(logger, **kwargs):
         if result:
             return True
         else:
+            print(result)
             wait_for(10, "Sleeping while hq isn't healthy", logger)
     return False
 
 
 def mongo_has_primary(logger, ip, timeout=60):
     timeout = time.time() + timeout
-    command = """
-    echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 --decode) | xargs -I '{}' kubectl exec -i $ACTIVE_MONGO -- bash -c "mongo -u root -p '{}' --host mongodb://mongodb-replicaset-0,mongodb-replicaset-1,mongodb-replicaset-2/admin?replicaSet=rs0 --quiet --eval \\\"rs.status()\\\""  | grep -i primary
+    command = """ACTIVE_MONGO=$(kubectl get po --selector=app=mongodb-replicaset --no-headers| grep -iv Terminating | awk {'print $1'} | head -1)
+echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 --decode) | xargs -I '{}' kubectl exec -i $ACTIVE_MONGO -- bash -c "mongo -u root -p '{}' --host mongodb://mongodb-replicaset-0,mongodb-replicaset-1,mongodb-replicaset-2/admin?replicaSet=rs0 --quiet --eval \\\"rs.status()\\\"" | grep -i primary
     """
     ssh = _ssh_connect(hostname=ip)
     while not time.time() > timeout:
@@ -200,5 +196,6 @@ def mongo_has_primary(logger, ip, timeout=60):
         if result:
             return True
         else:
+            print(result)
             wait_for(10, "Sleeping while mongo hasn't selected primary isn't healthy", ssh_logger)
     return False

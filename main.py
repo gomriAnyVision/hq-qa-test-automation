@@ -23,9 +23,8 @@ class HQ(object):
                 assert res.status_code == 200
                 return res.json()['token']
             except:
+                print(res.status_code, res.json() if res.json() else "")
                 print("Failed to login")
-
-
 
     def add_subject(self, image="assets/subject.jpeg"):
         with open(image, 'rb') as image_object:
@@ -121,7 +120,6 @@ class HQ(object):
             if site_sync_status and sites_ids:
                 return sites_ids, site_sync_status
 
-
     def consul_set(self, key, value, config):
         data = value
         res = requests.put(f"http://{config['site_consul_ip']}/v1/kv/{key}", data=data,
@@ -135,4 +133,7 @@ class HQ(object):
         return decoded_res
 
 
-
+if __name__ == "__main__":
+    hq_session = HQ()
+    subject_ids = hq_session.get_subject_ids(1000)
+    hq_session.delete_suspects(subject_ids)

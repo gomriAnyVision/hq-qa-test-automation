@@ -6,6 +6,7 @@ from pprint import pprint
 from googleapiclient import discovery
 
 from Utils.utils import Utils, wait_for, get_default_config
+# from cluster_mgmt import healthy_cluster
 from ssh import gravity_cluster_status, k8s_cluster_status, hq_pod_healthy, consul_healthy, mongo_has_primary
 
 
@@ -143,9 +144,6 @@ def start_machine(machine, wait_timeout, logger):
     wait_for(wait_timeout, "Sleeping waiting for machine to start", logger)
 
 
-def running_hq_node_v2():
-    pass
-
 def running_hq_node(logger):
     # TODO: Refactor this IMMEDIATELLY IT SUCKS
     hq_machines = config['hq_machines']
@@ -174,11 +172,11 @@ def healthy_cluster(health_status, logger, minimum_nodes_running=2):
                                                username=ssh_config['username'],
                                                password=ssh_config['password'],
                                                pem_path=ssh_config['pem_path'], )
-        mongo_has_primary(logger, ip=hq_ip)
         if current_cluster_status.count(health_status) >= minimum_nodes_running or \
                 int(ready_nodes_count) >= minimum_nodes_running and \
                 hq_pod_healthy(logger, ip=hq_ip) and \
-                consul_healthy(logger, ip=hq_ip):
+                consul_healthy(logger, ip=hq_ip) and \
+                mongo_has_primary(logger, ip=hq_ip):
             logger.info("Finished waiting for cluster to be healthy")
             return True
         else:

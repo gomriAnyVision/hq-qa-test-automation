@@ -3,13 +3,14 @@ import time
 
 from pprint import pformat
 from Utils.logger import Logger
-from Utils.utils import Utils, wait_for
+from Utils.utils import Utils, wait_for, get_default_config
 from ssh import disconnect_site_from_hq, delete_pod
 from main import HQ
-from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, running_hq_node
+from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine
 from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
+HQ_MACHINES = get_default_config()['hq_machines']
 
 def get_sync_status():
     if hq_session.get_sites():
@@ -47,6 +48,13 @@ def delete_site(alive_hq_node_ip):
     logger.info("No sites to delete")
 
 
+def alive_hq_node_ip():
+    global HQ_MACHINES
+    for machine, ip in HQ_MACHINES.items():
+        if ip:
+            return ip
+
+
 if __name__ == '__main__':
     Logger = Logger()
     Utils = Utils()
@@ -59,9 +67,9 @@ if __name__ == '__main__':
     env_config = Utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")
     hq_machines = Utils.get_config("hq_machines")
-    logger.info(f"Received config: {pformat(hq_machines)}")
+    logger.info(f"Received config: {pformat(HQ_MACHINES)}")
     machine_mgmt = MachineManagement(VmMgmt())
-    wait_for_cluster = 120
+    wait_for_cluster = 300
     """Cleaning up before starting test by removing all sites which are connected to the HQ
     And starting all stopped nodes"""
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
@@ -69,20 +77,20 @@ if __name__ == '__main__':
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
     hq_session = HQ()
     if not args.remove_site:
-        delete_site(hq_machines["server5-vm-0"])
+        delete_site(HQ_MACHINES["server5-vm-0"])
     failed_to_add_site_counter = 0
     iteration_number = 0
     logger.info("----------------------------------------------------------------")
     logger.info("                   STARTING MAIN TEST LOOP                      ")
     logger.info("----------------------------------------------------------------")
     while True:
-        for machine, ip in hq_machines.items():
+        for machine, ip in HQ_MACHINES.items():
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter}")
             stop_machine(machine, wait_for_cluster, logger, health_check=args.do_health_check)
-            # TODO: replace this fucntion with the running_hq_node function
-            running_hq_node_ip = running_hq_node(logger)
-            # TODO: Check consul cluster health
+            HQ_MACHINES[machine] = None
+            running_hq_node_ip = alive_hq_node_ip()
+            # TODO: Replace this function with the running_hq_node function
             # TODO: Check if hq pod is ready
             hq_session = HQ()
             hq_session.get_sites()
@@ -110,6 +118,7 @@ if __name__ == '__main__':
                         logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']} "
                                      f"Attempting to run the automation again")
                         start_machine(machine, wait_for_cluster, logger)
+                        HQ_MACHINES[machine] = ip
                         failed_to_add_site_counter += 1
                         continue
                     continue
@@ -135,4 +144,5 @@ if __name__ == '__main__':
             if not args.remove_site:
                 delete_site(running_hq_node_ip)
             start_machine(machine, wait_for_cluster, logger)
+            HQ_MACHINES[machine] = ip
             iteration_number += 1
