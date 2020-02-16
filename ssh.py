@@ -197,5 +197,5 @@ echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 
             return True
         else:
             print(result)
-            wait_for(10, "Sleeping while mongo hasn't selected primary isn't healthy", ssh_logger)
+            wait_for(10, "Sleeping while mongo hasn't selected primary isn't healthy", logger)
     return False
