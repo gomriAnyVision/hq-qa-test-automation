@@ -6,7 +6,6 @@ from pprint import pprint
 from googleapiclient import discovery
 
 from Utils.utils import Utils, wait_for, get_default_config
-# from cluster_mgmt import healthy_cluster
 from ssh import gravity_cluster_status, k8s_cluster_status, hq_pod_healthy, consul_healthy, mongo_has_primary
 
 
@@ -159,11 +158,10 @@ def running_hq_node(logger):
 
 
 def healthy_cluster(health_status, logger, minimum_nodes_running=2):
-    cluster_status = None
     ssh_config = config['vm'][0]['ssh']
-    logger.info(f"Started waiting for cluster to be healthy")
+    logger.info(f"Started health checks on cluster")
     hq_ip=running_hq_node(logger)
-    while not cluster_status:
+    while True:
         current_cluster_status = gravity_cluster_status(ip=hq_ip,
                                                         username=ssh_config['username'],
                                                         password=ssh_config['password'],
@@ -172,14 +170,22 @@ def healthy_cluster(health_status, logger, minimum_nodes_running=2):
                                                username=ssh_config['username'],
                                                password=ssh_config['password'],
                                                pem_path=ssh_config['pem_path'], )
+        hq_pod_health = hq_pod_healthy(logger, ip=hq_ip)
+        consul_health = consul_healthy(logger, ip=hq_ip)
+        mongo_health = mongo_has_primary(logger, ip=hq_ip)
         if current_cluster_status.count(health_status) >= minimum_nodes_running or \
                 int(ready_nodes_count) >= minimum_nodes_running and \
-                hq_pod_healthy(logger, ip=hq_ip) and \
-                consul_healthy(logger, ip=hq_ip) and \
-                mongo_has_primary(logger, ip=hq_ip):
-            logger.info("Finished waiting for cluster to be healthy")
+                hq_pod_health and \
+                consul_health and \
+                mongo_health:
+            logger.info(f"Cluster status hq_pod_health: {hq_pod_health}, consul_health: {consul_health}, mongo_health: {mongo_health} "
+                        f"\n Current gravity cluster status: {current_cluster_status.count(health_status)}"
+                        f", k8s ready nodes: {ready_nodes_count}")
             return True
         else:
+            logger.info(f"Cluster status hq_pod_health:{hq_pod_health}, consul_health: {consul_health}, monog_health: {mongo_health} "
+                        f"\n Current gravity cluster status: {current_cluster_status.count(health_status)}"
+                        f", k8s ready nodes: {ready_nodes_count}")
             logger.debug(f"Cluster status was: {current_cluster_status} - UNHEALTHY")
             wait_for(10, "Waiting 10 seconds before checking cluster status again", logger)
 
