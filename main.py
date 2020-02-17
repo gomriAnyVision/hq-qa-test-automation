@@ -9,7 +9,6 @@ DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
 
 class HQ(object):
-    # TODO: Think about soluations to checking request failers
     def __init__(self):
         self.request_headers = {
             'authorization': self._login()
@@ -32,7 +31,6 @@ class HQ(object):
         self.request_headers['Content-Type'] = 'image/jpeg'
         res = requests.post('https://hq-api.tls.ai/master/subjects/faces-from-image',
                             headers=self.request_headers, files=dict(images=image_to_upload))
-        # TODO: Find a better way to extract the subject data from the response
         subject_data = res.json()['data'][0]['results'][0]
         features = subject_data['Features']
         image = subject_data['Image']

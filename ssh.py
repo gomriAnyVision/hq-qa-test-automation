@@ -10,7 +10,7 @@ from Utils.utils import get_default_config, wait_for
 file_path = "scripts/disconnect_site_from_hq.sh"
 script_path = "disconnect_site_from_hq.sh"
 
-# TODO: Find to know if your running on cloud or VM without user input
+# TODO: Find a way to know if your running on cloud or VM without user input
 
 config = get_default_config()
 

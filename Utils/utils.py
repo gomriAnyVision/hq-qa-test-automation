@@ -62,7 +62,6 @@ def etc_hosts_restore(history):
 
 
 class Utils(object):
-    # TODO: config should receive a config file from args and have a default but never parse the path
     def __init__(self):
         self.config = ""
         with open(DEFAULT_CONFIG, "rb") as config_json:
@@ -70,7 +69,6 @@ class Utils(object):
 
     def set_config(self, config_path):
         if not os.path.exists(config_path):
-            # TODO: support default config file
             return
         with open(config_path, "rb") as config_file:
             self.config = json.load(config_file)
@@ -83,7 +81,6 @@ class Utils(object):
 
     def get_args(self):
         parser = argparse.ArgumentParser()
-        # TODO: Add default config path to the --env arg
         parser.add_argument("--env", help="Which env are you using vm/cloud", required=True)
         parser.add_argument("--add_multiple_subjects", help="Path to the image you want to add a single subject from")
         parser.add_argument("--add_single_subject", help="Path of the zop to run the mass add multiple subjects from")

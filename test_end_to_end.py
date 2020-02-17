@@ -70,7 +70,7 @@ if __name__ == '__main__':
     hq_machines = Utils.get_config("hq_machines")
     logger.info(f"Received config: {pformat(HQ_MACHINES)}")
     machine_mgmt = MachineManagement(VmMgmt())
-    wait_for_cluster = 60
+    wait_for_cluster = 300
     """Cleaning up before starting test by removing all sites which are connected to the HQ
     And starting all stopped nodes"""
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
@@ -111,7 +111,7 @@ if __name__ == '__main__':
                         and is_service_available(env_config[0]["site_extarnel_ip"], 16180):
                     try:
                         logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true'")
-                        wait_for(20, "Waiting for api to restart after feature toggle master", logger)
+                        wait_for(120, "Waiting for api to restart after feature toggle master", logger)
                         site_id = hq_session.add_site(site)
                         logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
                                     f"and external IP {site['site_extarnel_ip']}")
