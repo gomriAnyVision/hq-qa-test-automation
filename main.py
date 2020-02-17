@@ -23,7 +23,7 @@ class HQ(object):
                 assert res.status_code == 200
                 return res.json()['token']
             except:
-                print(res.status_code, res.json() if res.json() else "")
+                print(res.status_code, res)
                 print("Failed to login")
 
     def add_subject(self, image="assets/subject.jpeg"):
@@ -33,7 +33,6 @@ class HQ(object):
         res = requests.post('https://hq-api.tls.ai/master/subjects/faces-from-image',
                             headers=self.request_headers, files=dict(images=image_to_upload))
         # TODO: Find a better way to extract the subject data from the response
-        print(res)
         subject_data = res.json()['data'][0]['results'][0]
         features = subject_data['Features']
         image = subject_data['Image']
@@ -105,7 +104,7 @@ class HQ(object):
         }
         res = requests.post("https://hq-api.tls.ai/master/sites", headers=self.request_headers,
                             data=json.dumps(payload))
-        print(res)
+        print(res.status_code, res.text)
         return res.json()['_id']
 
     def get_sites(self):
