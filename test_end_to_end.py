@@ -70,13 +70,13 @@ if __name__ == '__main__':
     hq_machines = Utils.get_config("hq_machines")
     logger.info(f"Received config: {pformat(HQ_MACHINES)}")
     machine_mgmt = MachineManagement(VmMgmt())
-    wait_for_cluster = 300
+    wait_for_cluster = 0
     """Cleaning up before starting test by removing all sites which are connected to the HQ
     And starting all stopped nodes"""
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
-    healthy_cluster("Healthy", logger)
+    healthy_cluster("Healthy", logger, alive_hq_node_ip())
     hq_session = HQ()
     if args.remove_site:
         delete_site(HQ_MACHINES["server5-vm-0"])
@@ -89,10 +89,10 @@ if __name__ == '__main__':
         for machine, ip in HQ_MACHINES.items():
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter}")
-            stop_machine(machine, wait_for_cluster, logger, health_check=args.do_health_check)
-            """Remove the machine we just stopped ip from the active ip list """
+            stop_machine(machine, wait_for_cluster, logger)
             HQ_MACHINES[machine] = None
-            running_hq_node_ip = alive_hq_node_ip()
+            healthy_cluster("Healthy", logger, alive_hq_node_ip())
+            """Remove the machine we just stopped ip from the active ip list """
             hq_session = HQ()
             hq_session.get_sites()
             for site in env_config:
@@ -111,7 +111,7 @@ if __name__ == '__main__':
                         and is_service_available(env_config[0]["site_extarnel_ip"], 16180):
                     try:
                         logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true'")
-                        wait_for(120, "Waiting for api to restart after feature toggle master", logger)
+                        wait_for(20, "Waiting for api to restart after feature toggle master", logger)
                         site_id = hq_session.add_site(site)
                         logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
                                     f"and external IP {site['site_extarnel_ip']}")
@@ -145,7 +145,7 @@ if __name__ == '__main__':
                 logger.error("Failed to get event from HQ")
                 sys.exit(0)
             if args.remove_site:
-                delete_site(running_hq_node_ip)
+                delete_site(alive_hq_node_ip())
             start_machine(machine, wait_for_cluster, logger)
             """Add back the machine we just started ip to the active ip list """
             HQ_MACHINES[machine] = ip
