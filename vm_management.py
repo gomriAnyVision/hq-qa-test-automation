@@ -208,5 +208,5 @@ def stop_machine(machine, wait_timeout, logger, **flags):
             wait_for(10, "Sleeping 10 seconds waiting for machine to stop", logger)
     wait_for(wait_timeout, "Sleeping after stopping node", logger)
     logger.info("Checking if cluster is healthy")
-    if healthy_cluster("healthy", logger) and flags.get("health_check", None):
-        logger.info(f"Cluster healthy")
+    # if healthy_cluster("healthy", logger) and flags.get("health_check", None):
+    #     logger.info(f"Cluster healthy")
