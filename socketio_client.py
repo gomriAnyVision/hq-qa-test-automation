@@ -92,6 +92,7 @@ def verify_recognition_event(logger, sleep=20):
     try:
         assert event_count["on_recognition"] > 0
         print(event_count)
+        return event_count
     except AssertionError:
         logger.error(f"Failed to receive recognition event {HOST}")
     _disconnect()

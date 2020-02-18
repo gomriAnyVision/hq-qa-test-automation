@@ -1,9 +1,9 @@
+import json
+import logging
 import sys
+import time
 
 import paramiko
-import json
-import time
-import logging
 
 from Utils.utils import get_default_config, wait_for
 
