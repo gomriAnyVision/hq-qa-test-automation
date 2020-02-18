@@ -157,22 +157,28 @@ def running_hq_node(logger):
     return running_node_ips[0]
 
 
-def healthy_cluster(health_status, logger, minimum_nodes_running=2):
+def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2) :
     ssh_config = config['vm'][0]['ssh']
     logger.info(f"Started health checks on cluster")
-    hq_ip=running_hq_node(logger)
+    # hq_ip=running_hq_node(logger)
     while True:
+        logger.info(f"Attempting to connect to {hq_ip} and run health checks")
         current_cluster_status = gravity_cluster_status(ip=hq_ip,
                                                         username=ssh_config['username'],
                                                         password=ssh_config['password'],
                                                         pem_path=ssh_config['pem_path'], )
+        logger.info(f"Current gravity cluster status: {current_cluster_status.count(health_status)}")
         ready_nodes_count = k8s_cluster_status(ip=hq_ip,
                                                username=ssh_config['username'],
                                                password=ssh_config['password'],
                                                pem_path=ssh_config['pem_path'], )
+        logger.info(f"K8S ready nodes count: {ready_nodes_count}")
         hq_pod_health = hq_pod_healthy(logger, ip=hq_ip)
+        logger.info(f"HQ pod health: {hq_pod_health}")
         consul_health = consul_healthy(logger, ip=hq_ip)
+        logger.info(f"Consul health: {consul_health}")
         mongo_health = mongo_has_primary(logger, ip=hq_ip)
+        logger.info(f"Mongo health: {mongo_health}")
         if current_cluster_status.count(health_status) >= minimum_nodes_running or \
                 int(ready_nodes_count) >= minimum_nodes_running and \
                 hq_pod_health and \
@@ -208,5 +214,5 @@ def stop_machine(machine, wait_timeout, logger, **flags):
             wait_for(10, "Sleeping 10 seconds waiting for machine to stop", logger)
     wait_for(wait_timeout, "Sleeping after stopping node", logger)
     logger.info("Checking if cluster is healthy")
-    if healthy_cluster("healthy", logger) and flags.get("health_check", None):
-        logger.info(f"Cluster healthy")
+    # if healthy_cluster("healthy", logger) and flags.get("health_check", None):
+    #     logger.info(f"Cluster healthy")
