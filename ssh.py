@@ -195,3 +195,21 @@ echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 
         else:
             wait_for(10, "Sleeping while mongo hasn't selected primary isn't healthy", logger)
     return False
+
+def install_HQ_HA_node(hostname):
+    ssh = _ssh_connect(hostname)
+    download_command = """curl -fsSL https://raw.githubusercontent.com/AnyVisionltd/gravity-oneliner/1.24.1-0/install.sh | 
+bash -s -- --download-only --product-name hq-ha --add-migration-chart --product-repo-version on-demand-1.24.1
+--product-version 1.24.1-7 --k8s-infra-version 1.0.16 --k8s-infra-repo-version on-demand-1.24.1
+--k8s-base-version 1.0.17  --k8s-base-repo-version 1.24.1-0"""
+    installation_command = """./install.sh --install-method airgap --high-availabilty true --k8s-base-version 1.0.17 \
+--k8s-infra-version 1.0.16 --product-name hq-ha --product-version 1.24.1-7"""
+    ssh.exec_command(download_command)
+    stdin, stdout, stderr = ssh.exec_command(download_command)
+    if stdout.read().decode("utf-8"):
+        print(stdin, stdout)
+        print(f"Successfully downloaded, {stdout.read().decode('utf-8')}")
+        stdin, stdout, stderr = ssh.exec_command(installation_command)
+        installation_result = stdout.read().decode("utf-8")
+        print(stdin, stdout)
+        print(f"Installation results are : {installation_result}")
