@@ -89,40 +89,46 @@ if __name__ == '__main__':
         for machine, ip in HQ_MACHINES.items():
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter}")
-            stop_machine(machine, wait_for_cluster, logger, health_check=args.do_health_check)
+            stop_machine(machine, wait_for_cluster, logger)
+            if args.health_check:
+                healthy_cluster("Healthy", logger)
             """Remove the machine we just stopped ip from the active ip list """
             HQ_MACHINES[machine] = None
             running_hq_node_ip = alive_hq_node_ip()
             hq_session = HQ()
             hq_session.get_sites()
-            for site in env_config:
-                # Attempting to add site again after deletion
-                feature_toggle_master = hq_session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
-                logger.info(f"Connect to consul at {site['site_consul_ip']} "
-                            f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master}")
-                if feature_toggle_master == "false":
-                    hq_session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
-                    delete_pod(ip=env_config[0]['site_extarnel_ip'],
-                               username=env_config[0]['ssh']['username'],
-                               password=env_config[0]['ssh']['password'],
-                               pem_path=env_config[0]['ssh']['pem_path'],
-                               pod_name="site")
-                if is_service_available(env_config[0]["site_extarnel_ip"], 3000) \
-                        and is_service_available(env_config[0]["site_extarnel_ip"], 16180):
-                    try:
-                        logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true'")
-                        wait_for(20, "Waiting for api to restart after feature toggle master", logger)
-                        site_id = hq_session.add_site(site)
-                        logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
-                                    f"and external IP {site['site_extarnel_ip']}")
-                    except:
-                        logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']} "
-                                     f"Attempting to run the automation again")
-                        start_machine(machine, wait_for_cluster, logger)
-                        """Add back the machine we just started ip to the active ip list """
-                        HQ_MACHINES[machine] = ip
-                        failed_to_add_site_counter += 1
-                        continue
+            # TODO: Remove this log when merging branches
+            logger.info(f"Received {args.add_site} ")
+            if args.add_site:
+                logger.info("Started trying to add site")
+                for site in env_config:
+                    # Attempting to add site again after deletion
+                    feature_toggle_master = hq_session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
+                    logger.info(f"Connect to consul at {site['site_consul_ip']} "
+                                f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master}")
+                    if feature_toggle_master == "false":
+                        hq_session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
+                        delete_pod(ip=env_config[0]['site_extarnel_ip'],
+                                   username=env_config[0]['ssh']['username'],
+                                   password=env_config[0]['ssh']['password'],
+                                   pem_path=env_config[0]['ssh']['pem_path'],
+                                   pod_name="site")
+                    if is_service_available(env_config[0]["site_extarnel_ip"], 3000) \
+                            and is_service_available(env_config[0]["site_extarnel_ip"], 16180):
+                        try:
+                            logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true'")
+                            wait_for(20, "Waiting for api to restart after feature toggle master", logger)
+                            site_id = hq_session.add_site(site)
+                            logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
+                                        f"and external IP {site['site_extarnel_ip']}")
+                        except:
+                            logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']} "
+                                         f"Attempting to run the automation again")
+                            start_machine(machine, wait_for_cluster, logger)
+                            """Add back the machine we just started ip to the active ip list """
+                            HQ_MACHINES[machine] = ip
+                            failed_to_add_site_counter += 1
+                            continue
             if failed_to_add_site_counter > 0:
                 continue
             sync_status = ""
