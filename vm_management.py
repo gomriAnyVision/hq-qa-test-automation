@@ -161,7 +161,6 @@ def running_hq_node(logger):
 def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
     ssh_config = config['vm'][0]['ssh']
     logger.info(f"Started health checks on cluster")
-    # hq_ip=running_hq_node(logger)
     while True:
         logger.info(f"Attempting to connect to {hq_ip} and run health checks")
         ready_nodes_count = k8s_cluster_status(ip=hq_ip,
