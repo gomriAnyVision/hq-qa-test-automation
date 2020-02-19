@@ -6,6 +6,7 @@ from pprint import pprint
 from googleapiclient import discovery
 
 from Utils.utils import Utils, wait_for, get_default_config
+from main import consul_get_leader
 from ssh import gravity_cluster_status, k8s_cluster_status, hq_pod_healthy, consul_elected_leader, mongo_has_primary, \
     consul_nodes
 
@@ -170,7 +171,7 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
         logger.info(f"K8S ready nodes count: {ready_nodes_k8s_count}")
         hq_pod_health = hq_pod_healthy(logger, ip=hq_ip)
         logger.info(f"HQ pod health: {hq_pod_health}")
-        consul_health = consul_elected_leader(logger, ip=hq_ip)
+        consul_health = consul_get_leader(ip=hq_ip)
         logger.info(f"Consul health: {consul_health}")
         mongo_health = mongo_has_primary(logger, ip=hq_ip)
         logger.info(f"Mongo health: {mongo_health}")
