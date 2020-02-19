@@ -174,8 +174,10 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
         logger.info(f"Consul health: {consul_health}")
         mongo_health = mongo_has_primary(logger, ip=hq_ip)
         logger.info(f"Mongo health: {mongo_health}")
+        ready_consul_nodes = consul_nodes(logger, ip=hq_ip)
+        logger.info(f"Ready consul nodes: {ready_consul_nodes}")
         if int(ready_nodes_k8s_count) >= minimum_nodes_running and hq_pod_health and \
-                consul_health and mongo_health:
+                consul_health and mongo_health and ready_consul_nodes >= minimum_nodes_running:
             logger.info(
                 f"Cluster status hq_pod_health: {hq_pod_health}, consul_health: {consul_health}, mongo_health: {mongo_health} "
                 f", k8s ready nodes: {ready_nodes_k8s_count}")
