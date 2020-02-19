@@ -4,7 +4,7 @@ import time
 from pprint import pformat
 from Utils.logger import Logger
 from Utils.utils import Utils, wait_for, get_default_config
-from ssh import disconnect_site_from_hq, delete_pod
+from ssh import disconnect_site_from_hq, delete_pod, consul_cluster_health
 from main import HQ
 from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, healthy_cluster
 from socketio_client import verify_recognition_event
@@ -89,6 +89,7 @@ if __name__ == '__main__':
         for machine, ip in HQ_MACHINES.items():
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter}")
+            healthy_cluster("Healthy", logger, alive_hq_node_ip())
             stop_machine(machine, wait_for_cluster, logger)
             HQ_MACHINES[machine] = None
             healthy_cluster("Healthy", logger, alive_hq_node_ip())

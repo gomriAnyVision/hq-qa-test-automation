@@ -122,7 +122,7 @@ def k8s_cluster_status(**config):
     return running_nodes
 
 
-def consul_healthy(logger, **kwargs):
+def consul_elected_leader(logger, **kwargs):
     kwargs['timeout'] = None
     timeout=kwargs['timeout'] if kwargs['timeout'] else 60
     stop_time = time.time() + timeout
@@ -195,3 +195,21 @@ echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 
         else:
             wait_for(10, "Sleeping while mongo hasn't selected primary isn't healthy", logger)
     return False
+
+
+def consul_cluster_health(logger, ip):
+    command = """kubectl exec -ti $(kubectl get pod -l=app=hq | grep -v Terminating | grep -i 2/2 | awk {'print $1'}
+) -c api-master -- curl http://consul-server-client:8500/v1/catalog/nodes"""
+    ssh = _ssh_connect(hostname=ip)
+    stdin, stdout, stderr = ssh.exec_command(command)
+    result = stdout.read()
+    if result:
+        decoded_res = result.decode('utf-8')
+        json_res = json.loads(decoded_res)
+        number_of_peers = len(json_res)
+        # TODO: change log level to debug
+        logger.debug(f"Result: {decoded_res}")
+        logger.info(f"Number of peers: {number_of_peers}")
+        return number_of_peers
+    else:
+        return 0

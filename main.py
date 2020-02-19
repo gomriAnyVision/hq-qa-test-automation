@@ -22,7 +22,7 @@ class HQ(object):
                 assert res.status_code == 200
                 return res.json()['token']
             except:
-                print(res.status_code, res)
+                print(res.status_code if res.status_code else None, res)
                 print("Failed to login")
 
     def add_subject(self, image="assets/subject.jpeg"):

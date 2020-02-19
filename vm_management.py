@@ -6,7 +6,8 @@ from pprint import pprint
 from googleapiclient import discovery
 
 from Utils.utils import Utils, wait_for, get_default_config
-from ssh import gravity_cluster_status, k8s_cluster_status, hq_pod_healthy, consul_healthy, mongo_has_primary
+from ssh import gravity_cluster_status, k8s_cluster_status, hq_pod_healthy, consul_elected_leader, mongo_has_primary, \
+    consul_cluster_health
 
 
 class MachineManagement(object):
@@ -163,11 +164,6 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2) :
     # hq_ip=running_hq_node(logger)
     while True:
         logger.info(f"Attempting to connect to {hq_ip} and run health checks")
-        current_cluster_status = gravity_cluster_status(ip=hq_ip,
-                                                        username=ssh_config['username'],
-                                                        password=ssh_config['password'],
-                                                        pem_path=ssh_config['pem_path'], )
-        logger.info(f"Current gravity cluster status: {current_cluster_status.count(health_status)}")
         ready_nodes_count = k8s_cluster_status(ip=hq_ip,
                                                username=ssh_config['username'],
                                                password=ssh_config['password'],
@@ -213,6 +209,5 @@ def stop_machine(machine, wait_timeout, logger, **flags):
                         f"for another 10 seconds")
             wait_for(10, "Sleeping 10 seconds waiting for machine to stop", logger)
     wait_for(wait_timeout, "Sleeping after stopping node", logger)
-    logger.info("Checking if cluster is healthy")
     # if healthy_cluster("healthy", logger) and flags.get("health_check", None):
     #     logger.info(f"Cluster healthy")
