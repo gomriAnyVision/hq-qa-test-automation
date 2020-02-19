@@ -13,6 +13,10 @@ script_path = "disconnect_site_from_hq.sh"
 # TODO: Find a way to know if your running on cloud or VM without user input
 
 config = get_default_config()
+"""
+Stop the paramiko logg from overflowing the logging
+"""
+logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 ssh_logger = logging.getLogger(__name__)
 ssh_logger.setLevel(logging.INFO)
@@ -22,6 +26,8 @@ handler = logging.StreamHandler(sys.stdout)
 file_handler.setFormatter(formatter)
 ssh_logger.addHandler(file_handler)
 ssh_logger.addHandler(handler)
+
+# TODO: Remove duplicated ssh connection code and ssh data parasing
 
 def disconnect_site_from_hq(**config):
     ssh = paramiko.SSHClient()
@@ -209,7 +215,7 @@ def consul_nodes(logger, ip):
         number_of_peers = len(json_res)
         # TODO: change log level to debug
         logger.debug(f"Result: {decoded_res}")
-        logger.info(f"Number of peers: {number_of_peers}")
+        logger.debug(f"Number of peers: {number_of_peers}")
         return number_of_peers
     else:
         return 0

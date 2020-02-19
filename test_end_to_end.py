@@ -89,7 +89,7 @@ if __name__ == '__main__':
         for machine, ip in HQ_MACHINES.items():
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter}")
-            healthy_cluster("Healthy", logger, alive_hq_node_ip())
+            healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
             stop_machine(machine, wait_for_cluster, logger)
             HQ_MACHINES[machine] = None
             healthy_cluster("Healthy", logger, alive_hq_node_ip())
