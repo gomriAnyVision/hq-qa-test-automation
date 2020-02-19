@@ -197,7 +197,7 @@ echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 
     return False
 
 
-def consul_cluster_health(logger, ip):
+def consul_nodes(logger, ip):
     command = """kubectl exec -ti $(kubectl get pod -l=app=hq | grep -v Terminating | grep -i 2/2 | awk {'print $1'}
 ) -c api-master -- curl http://consul-server-client:8500/v1/catalog/nodes"""
     ssh = _ssh_connect(hostname=ip)

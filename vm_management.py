@@ -7,7 +7,7 @@ from googleapiclient import discovery
 
 from Utils.utils import Utils, wait_for, get_default_config
 from ssh import gravity_cluster_status, k8s_cluster_status, hq_pod_healthy, consul_elected_leader, mongo_has_primary, \
-    consul_cluster_health
+    consul_nodes
 
 
 class MachineManagement(object):
