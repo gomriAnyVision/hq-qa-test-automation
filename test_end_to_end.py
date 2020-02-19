@@ -4,7 +4,7 @@ import time
 from pprint import pformat
 from Utils.logger import Logger
 from Utils.utils import Utils, wait_for, get_default_config
-from ssh import disconnect_site_from_hq, delete_pod, consul_cluster_health
+from ssh import disconnect_site_from_hq, delete_pod
 from main import HQ
 from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, healthy_cluster
 from socketio_client import verify_recognition_event
