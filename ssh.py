@@ -213,3 +213,4 @@ def consul_cluster_health(logger, ip):
         return number_of_peers
     else:
         return 0
+
