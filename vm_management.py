@@ -163,27 +163,27 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
     logger.info(f"Started health checks on cluster")
     while True:
         logger.info(f"Attempting to connect to {hq_ip} and run health checks")
-        ready_nodes_count = k8s_cluster_status(ip=hq_ip,
+        ready_nodes_k8s_count = k8s_cluster_status(ip=hq_ip,
                                                username=ssh_config['username'],
                                                password=ssh_config['password'],
                                                pem_path=ssh_config['pem_path'], )
-        logger.info(f"K8S ready nodes count: {ready_nodes_count}")
+        logger.info(f"K8S ready nodes count: {ready_nodes_k8s_count}")
         hq_pod_health = hq_pod_healthy(logger, ip=hq_ip)
         logger.info(f"HQ pod health: {hq_pod_health}")
         consul_health = consul_elected_leader(logger, ip=hq_ip)
         logger.info(f"Consul health: {consul_health}")
         mongo_health = mongo_has_primary(logger, ip=hq_ip)
         logger.info(f"Mongo health: {mongo_health}")
-        if int(ready_nodes_count) >= minimum_nodes_running and hq_pod_health and \
+        if int(ready_nodes_k8s_count) >= minimum_nodes_running and hq_pod_health and \
                 consul_health and mongo_health:
             logger.info(
                 f"Cluster status hq_pod_health: {hq_pod_health}, consul_health: {consul_health}, mongo_health: {mongo_health} "
-                f", k8s ready nodes: {ready_nodes_count}")
+                f", k8s ready nodes: {ready_nodes_k8s_count}")
             return True
         else:
             logger.info(
                 f"Cluster status hq_pod_health:{hq_pod_health}, consul_health: {consul_health}, monog_health: {mongo_health} "
-                f", k8s ready nodes: {ready_nodes_count}")
+                f", k8s ready nodes: {ready_nodes_k8s_count}")
             wait_for(10, "Waiting 10 seconds before checking cluster status again", logger)
 
 
