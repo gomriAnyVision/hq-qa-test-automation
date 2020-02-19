@@ -4,7 +4,6 @@ import base64
 
 from Utils.utils import Utils
 
-
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
 
@@ -22,7 +21,6 @@ class HQ(object):
                 assert res.status_code == 200
                 return res.json()['token']
             except:
-                print(res.status_code if res.status_code else None, res)
                 print("Failed to login")
 
     def add_subject(self, image="assets/subject.jpeg"):
@@ -130,7 +128,17 @@ class HQ(object):
         return decoded_res
 
 
+def consul_get_leader(ip):
+    try:
+        res = requests.get(f"http://{ip}/consul/v1/status/leader", auth=("admin", "Passw0rd123"))
+        print(res.text, res.status_code)
+        return res
+    except:
+        return False
+
+
 if __name__ == "__main__":
     hq_session = HQ()
+    s = consul_get_leader("192.168.122.191")
     subject_ids = hq_session.get_subject_ids(1000)
     hq_session.delete_suspects(subject_ids)
