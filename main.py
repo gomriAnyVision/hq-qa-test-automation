@@ -1,3 +1,5 @@
+import time
+
 import requests
 import json
 import base64
@@ -9,17 +11,16 @@ DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
 
 class HQ(object):
     def __init__(self):
-        self.request_headers = {
-            'authorization': self._login()
-        }
+        self.request_headers = {}
 
-    def _login(self):
+    def login(self):
         for attempts in range(1, 10):
             try:
                 res = requests.post('https://hq-api.tls.ai/master/login',
                                     data={'username': 'admin', 'password': 'admin'})
+                time.sleep(1)
                 assert res.status_code == 200
-                return res.json()['token']
+                self.request_headers['authorization'] = res.json()['token']
             except:
                 print("Failed to login")
 
@@ -132,7 +133,8 @@ def consul_get_leader(ip):
     try:
         res = requests.get(f"http://{ip}/consul/v1/status/leader", auth=("admin", "Passw0rd123"))
         print(res.text, res.status_code)
-        return res
+        if res:
+            return True
     except:
         return False
 

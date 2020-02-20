@@ -78,6 +78,7 @@ if __name__ == '__main__':
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
     healthy_cluster("Healthy", logger, alive_hq_node_ip())
     hq_session = HQ()
+    hq_session.login()
     if args.remove_site:
         delete_site(HQ_MACHINES["server5-vm-0"])
     failed_to_add_site_counter = 0
@@ -95,6 +96,7 @@ if __name__ == '__main__':
             healthy_cluster("Healthy", logger, alive_hq_node_ip())
             """Remove the machine we just stopped ip from the active ip list """
             hq_session = HQ()
+            hq_session.login()
             hq_session.get_sites()
             for site in env_config:
                 # Attempting to add site again after deletion
