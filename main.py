@@ -137,6 +137,17 @@ def consul_get_leader(ip):
         return False
 
 
+def verify_all_consul_members_alive(ip):
+    try:
+        res = requests.get(f"http://{ip}/consul/v1/agent/members", auth=("admin", "Passw0rd123"))
+        print(res.text, res.status_code)
+        # Check that all consul members are alive
+        alive_members = len([item.get('Status') for item in res.json()])
+        print(f"Number of Consul alive Members: {alive_members}")
+        return alive_members
+    except:
+        return False
+
 if __name__ == "__main__":
     hq_session = HQ()
     s = consul_get_leader("192.168.122.191")
