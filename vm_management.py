@@ -188,18 +188,18 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
                 hq_pod_health and consul_active_members >= minimum_nodes_running and hq_login_res:
             logger.info(
                 f"Cluster status hq_pod_health: {hq_pod_health}, consul_elected_leader: {consul_elected_leader}, mongo_health: {mongo_health} "
-                f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes}" 
-                f" Consul active members: {consul_active_members}")
+                f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes} " 
+                f" Consul active members: {consul_active_members} HQ available :{hq_login_res} ")
             return True
         else:
             logger.info(
                 f"Cluster status hq_pod_health:{hq_pod_health}, consul_elected_leader: {consul_elected_leader}, monog_health: {mongo_health} "
-                f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes}"
-                f"Consul active members: {consul_active_members}")
+                f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes} "
+                f" Consul active members: {consul_active_members} HQ available :{hq_login_res} ")
             wait_for(10, "Waiting 10 seconds before checking cluster status again", logger)
 
 
-def stop_machine(machine, wait_timeout, logger, **flags):
+def stop_machine(machine, wait_timeout, logger):
     if len(machine_mgmt.list_started_machine()) == 4:
         logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
         machine_mgmt.stop(machine)
