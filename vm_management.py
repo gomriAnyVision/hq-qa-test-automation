@@ -1,6 +1,7 @@
 import json
 import googleapiclient
 import requests
+from paramiko.ssh_exception import NoValidConnectionsError
 
 from pprint import pprint
 from googleapiclient import discovery
@@ -159,45 +160,47 @@ def running_hq_node(logger):
     return running_node_ips[0]
 
 
-
 def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
     ssh_config = config['vm'][0]['ssh']
     logger.info(f"Started health checks on cluster")
     while True:
-        logger.info(f"Attempting to connect to {hq_ip} and run health checks")
-        ready_nodes_k8s_count = k8s_cluster_status(ip=hq_ip,
-                                                   username=ssh_config['username'],
-                                                   password=ssh_config['password'],
-                                                   pem_path=ssh_config['pem_path'], )
-        logger.info(f"K8S ready nodes count: {ready_nodes_k8s_count}")
-        hq_pod_health = hq_pod_healthy(logger, ip=hq_ip)
-        logger.info(f"HQ pod health: {hq_pod_health}")
-        consul_elected_leader = consul_get_leader(ip=hq_ip)
-        logger.info(f"Consul elected leader: {consul_elected_leader}")
-        mongo_health = mongo_has_primary(logger, ip=hq_ip)
-        logger.info(f"Mongo health: {mongo_health}")
-        ready_consul_nodes = consul_nodes(logger, ip=hq_ip)
-        logger.info(f"Ready consul nodes: {ready_consul_nodes}")
-        consul_active_members = verify_all_consul_members_alive(hq_ip)
-        logger.info(f"Ready active member nodes: {consul_active_members}")
-        hq_session = HQ()
-        hq_login_res = hq_session.login()
-        logger.info(f"HQ login result {hq_session.request_headers}")
-        if int(ready_nodes_k8s_count) >= minimum_nodes_running and hq_pod_health and \
-                consul_elected_leader and mongo_health and ready_consul_nodes >= minimum_nodes_running and\
-                hq_pod_health and consul_active_members >= minimum_nodes_running and hq_login_res:
-            logger.info(
-                f"Cluster status hq_pod_health: {hq_pod_health}, consul_elected_leader: {consul_elected_leader}, mongo_health: {mongo_health} "
-                f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes} " 
-                f" Consul active members: {consul_active_members} HQ available :{hq_login_res} ")
-            return True
-        else:
-            logger.info(
-                f"Cluster status hq_pod_health:{hq_pod_health}, consul_elected_leader: {consul_elected_leader}, monog_health: {mongo_health} "
-                f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes} "
-                f" Consul active members: {consul_active_members} HQ available :{hq_login_res} ")
-            wait_for(10, "Waiting 10 seconds before checking cluster status again", logger)
-
+        try:
+            logger.info(f"Attempting to connect to {hq_ip} and run health checks")
+            ready_nodes_k8s_count = k8s_cluster_status(ip=hq_ip,
+                                                       username=ssh_config['username'],
+                                                       password=ssh_config['password'],
+                                                       pem_path=ssh_config['pem_path'], )
+            logger.info(f"K8S ready nodes count: {ready_nodes_k8s_count}")
+            hq_pod_health = hq_pod_healthy(logger, ip=hq_ip)
+            logger.info(f"HQ pod health: {hq_pod_health}")
+            consul_elected_leader = consul_get_leader(ip=hq_ip)
+            logger.info(f"Consul elected leader: {consul_elected_leader}")
+            mongo_health = mongo_has_primary(logger, ip=hq_ip)
+            logger.info(f"Mongo health: {mongo_health}")
+            ready_consul_nodes = consul_nodes(logger, ip=hq_ip)
+            logger.info(f"Ready consul nodes: {ready_consul_nodes}")
+            consul_active_members = verify_all_consul_members_alive(hq_ip)
+            logger.info(f"Ready active member nodes: {consul_active_members}")
+            hq_session = HQ()
+            hq_login_res = hq_session.login()
+            logger.info(f"HQ login rresult {hq_login_res}")
+            if int(ready_nodes_k8s_count) >= minimum_nodes_running and hq_pod_health and \
+                    consul_elected_leader and mongo_health and ready_consul_nodes >= minimum_nodes_running and\
+                    hq_pod_health and consul_active_members >= minimum_nodes_running and hq_login_res:
+                logger.info(
+                    f"Cluster status hq_pod_health: {hq_pod_health}, consul_elected_leader: {consul_elected_leader}, mongo_health: {mongo_health} "
+                    f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes} " 
+                    f" Consul active members: {consul_active_members} HQ available :{hq_login_res} ")
+                return True
+            else:
+                logger.info(
+                    f"Cluster status hq_pod_health:{hq_pod_health}, consul_elected_leader: {consul_elected_leader}, monog_health: {mongo_health} "
+                    f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes} "
+                    f" Consul active members: {consul_active_members} HQ available :{hq_login_res} ")
+                wait_for(10, "Waiting 10 seconds before checking cluster status again", logger)
+        except NoValidConnectionsError:
+            wait_for(10, f"Failed to login to: {hq_ip}, waiting 10 seconds ", logger)
+            logger.error('Failed to login')
 
 def stop_machine(machine, wait_timeout, logger):
     if len(machine_mgmt.list_started_machine()) == 4:
@@ -216,5 +219,3 @@ def stop_machine(machine, wait_timeout, logger):
                         f"for another 10 seconds")
             wait_for(10, "Sleeping 10 seconds waiting for machine to stop", logger)
     wait_for(wait_timeout, "Sleeping after stopping node", logger)
-    # if healthy_cluster("healthy", logger) and flags.get("health_check", None):
-    #     logger.info(f"Cluster healthy")
