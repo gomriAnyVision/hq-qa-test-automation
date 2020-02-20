@@ -6,7 +6,7 @@ from pprint import pprint
 from googleapiclient import discovery
 
 from Utils.utils import Utils, wait_for, get_default_config
-from main import consul_get_leader, verify_all_consul_members_alive
+from main import consul_get_leader, verify_all_consul_members_alive, HQ
 from ssh import gravity_cluster_status, k8s_cluster_status, hq_pod_healthy, consul_elected_leader, mongo_has_primary, \
     consul_nodes
 
@@ -172,26 +172,29 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
         logger.info(f"K8S ready nodes count: {ready_nodes_k8s_count}")
         hq_pod_health = hq_pod_healthy(logger, ip=hq_ip)
         logger.info(f"HQ pod health: {hq_pod_health}")
-        consul_health = consul_get_leader(ip=hq_ip)
-        logger.info(f"Consul health: {consul_health}")
+        consul_elected_leader = consul_get_leader(ip=hq_ip)
+        logger.info(f"Consul elected leader: {consul_elected_leader}")
         mongo_health = mongo_has_primary(logger, ip=hq_ip)
         logger.info(f"Mongo health: {mongo_health}")
         ready_consul_nodes = consul_nodes(logger, ip=hq_ip)
         logger.info(f"Ready consul nodes: {ready_consul_nodes}")
         consul_active_members = verify_all_consul_members_alive(hq_ip)
         logger.info(f"Ready active member nodes: {consul_active_members}")
+        hq_session = HQ()
+        hq_login_res = hq_session.login()
+        logger.info(f"HQ login result {hq_session.request_headers}")
         if int(ready_nodes_k8s_count) >= minimum_nodes_running and hq_pod_health and \
-                consul_health and mongo_health and ready_consul_nodes >= minimum_nodes_running and\
-                hq_pod_health and consul_active_members >= minimum_nodes_running:
+                consul_elected_leader and mongo_health and ready_consul_nodes >= minimum_nodes_running and\
+                hq_pod_health and consul_active_members >= minimum_nodes_running and hq_login_res:
             logger.info(
-                f"Cluster status hq_pod_health: {hq_pod_health}, consul_health: {consul_health}, mongo_health: {mongo_health} "
-                f",\n k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes}" 
+                f"Cluster status hq_pod_health: {hq_pod_health}, consul_elected_leader: {consul_elected_leader}, mongo_health: {mongo_health} "
+                f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes}" 
                 f" Consul active members: {consul_active_members}")
             return True
         else:
             logger.info(
-                f"Cluster status hq_pod_health:{hq_pod_health}, consul_health: {consul_health}, monog_health: {mongo_health} "
-                f",\n k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes}"
+                f"Cluster status hq_pod_health:{hq_pod_health}, consul_elected_leader: {consul_elected_leader}, monog_health: {mongo_health} "
+                f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes}"
                 f"Consul active members: {consul_active_members}")
             wait_for(10, "Waiting 10 seconds before checking cluster status again", logger)
 
