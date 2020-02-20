@@ -14,15 +14,16 @@ class HQ(object):
         self.request_headers = {}
 
     def login(self):
-        for attempts in range(1, 10):
-            try:
-                res = requests.post('https://hq-api.tls.ai/master/login',
-                                    data={'username': 'admin', 'password': 'admin'})
-                time.sleep(1)
-                assert res.status_code == 200
-                self.request_headers['authorization'] = res.json()['token']
-            except:
-                print("Failed to login")
+        try:
+            res = requests.post('https://hq-api.tls.ai/master/login',
+                                data={'username': 'admin', 'password': 'admin'})
+            time.sleep(1)
+            assert res.status_code == 200
+            self.request_headers['authorization'] = res.json()['token']
+            return True
+        except:
+            print("Failed to login")
+            return False
 
     def add_subject(self, image="assets/subject.jpeg"):
         with open(image, 'rb') as image_object:
