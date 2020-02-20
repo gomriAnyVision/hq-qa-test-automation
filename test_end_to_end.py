@@ -32,14 +32,17 @@ def get_sites_id():
 
 def delete_site(alive_hq_node_ip):
     sites_id = get_sites_id()
-    if sites_id:
+    try:
         remove_site_from_hq = hq_session.remove_site(sites_id)
         logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
+    except:
+        logger.info(f"Nothing to delete result from get_sites_id: {sites_id}")
     disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
-                                                  username=env_config[0]['ssh']['username'],
-                                                  password=env_config[0]['ssh']['password'],
-                                                  pem_path=env_config[0]['ssh']['pem_path'])
+                                              username=env_config[0]['ssh']['username'],
+                                              password=env_config[0]['ssh']['password'],
+                                              pem_path=env_config[0]['ssh']['pem_path'])
     logger.debug(f"Attempting connection to {alive_hq_node_ip}")
+    logger.info(f"Attemping to disconnect site from HQ")
     delete_pod(ip=alive_hq_node_ip,
                username=env_config[0]['ssh']['username'],
                password=env_config[0]['ssh']['password'],
@@ -76,7 +79,7 @@ if __name__ == '__main__':
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
-    healthy_cluster("Healthy", logger, alive_hq_node_ip())
+    healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
     hq_session = HQ()
     hq_session.login()
     if args.remove_site:
@@ -91,6 +94,7 @@ if __name__ == '__main__':
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter}")
             healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
+            logger.info(f"Stop machine IP:{ip}, Name: {machine}")
             stop_machine(machine, wait_for_cluster, logger)
             HQ_MACHINES[machine] = None
             healthy_cluster("Healthy", logger, alive_hq_node_ip())
