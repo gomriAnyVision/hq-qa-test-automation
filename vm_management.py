@@ -186,7 +186,7 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
             logger.info(
                 f"Cluster status hq_pod_health: {hq_pod_health}, consul_health: {consul_health}, mongo_health: {mongo_health} "
                 f",\n k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes}" 
-                f"Consul active members: {consul_active_members}")
+                f" Consul active members: {consul_active_members}")
             return True
         else:
             logger.info(

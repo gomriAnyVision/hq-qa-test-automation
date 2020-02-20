@@ -73,7 +73,7 @@ def verify_mass_import_event(session, args, logger, sleep=5):
     _disconnect()
     socket_thread.join()
 
-
+# TODO: Fix bug ValueError: Client is not in a disconnected state
 def verify_recognition_event(logger, sleep=20):
     """
     Executes the add single subject task and verify the subject is created in the site by verify an event
