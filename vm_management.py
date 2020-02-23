@@ -196,7 +196,7 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
                 logger.info(
                     f"Cluster status hq_pod_health:{hq_pod_health}, consul_elected_leader: {consul_elected_leader}, monog_health: {mongo_health} "
                     f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes} "
-                    f" Consul active members: {consul_active_members} HQ available :{hq_login_res} ")
+                    f" Consul active members: {consul_active_members} HQ available: {hq_login_res} ")
                 wait_for(10, "Waiting 10 seconds before checking cluster status again", logger)
         except NoValidConnectionsError:
             wait_for(10, f"Failed to login to: {hq_ip}, waiting 10 seconds ", logger)

@@ -133,8 +133,8 @@ class HQ(object):
 def consul_get_leader(ip):
     try:
         res = requests.get(f"http://{ip}/consul/v1/status/leader", auth=("admin", "Passw0rd123"))
-        print(res.text, res.status_code)
-        if res:
+        assert res.status_code == 200
+        if res and res != "":
             return True
     except:
         return False
