@@ -83,6 +83,7 @@ def verify_recognition_event(logger, sleep=20):
     :param logger: logger to log the results
     :param sleep: how long ot wait for the recognition event
     """
+    _disconnect()
     socket_thread = threading.Thread(target=_connect_to_socket_and_wait)
     socket_thread.setDaemon(True)
     socket_thread.start()
