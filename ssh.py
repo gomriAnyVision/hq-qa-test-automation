@@ -164,24 +164,20 @@ def hq_pod_healthy(logger, ip):
     ssh_config = config['vm'][0]['ssh']
     ssh = _ssh_connect(hostname=ip)
     stdin, stdout, stderr = ssh.exec_command(command)
-    result = stdout.read().decode("utf-8")
+    result = stdout.read()
+    result = result.decode("utf-8")
+    logger.info(f"hq_pod_healthy - result:{result}")
     return True if result else False
 
 
 def mongo_has_primary(logger, ip, timeout=60):
-    timeout = time.time() + timeout
     command = """ACTIVE_MONGO=$(kubectl get po --selector=app=mongodb-replicaset --no-headers| grep -iv Terminating | awk {'print $1'} | head -1)
 echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 --decode) | xargs -I '{}' kubectl exec -i $ACTIVE_MONGO -- bash -c "mongo -u root -p '{}' --host mongodb://mongodb-replicaset-0,mongodb-replicaset-1,mongodb-replicaset-2/admin?replicaSet=rs0 --quiet --eval \\\"rs.status()\\\"" | grep -i primary
     """
     ssh = _ssh_connect(hostname=ip)
-    while not time.time() > timeout:
-        stdin, stdout, stderr = ssh.exec_command(command)
-        result = stdout.read().decode("utf-8")
-        if result:
-            return True
-        else:
-            wait_for(10, "Sleeping while mongo hasn't selected primary isn't healthy", logger)
-    return False
+    stdin, stdout, stderr = ssh.exec_command(command)
+    result = stdout.read().decode("utf-8")
+    return True if result else False
 
 
 def consul_nodes(logger, ip):
