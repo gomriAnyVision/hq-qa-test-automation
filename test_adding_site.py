@@ -6,7 +6,7 @@ from Utils.logger import Logger
 from Utils.utils import Utils
 from socketio_client import verify_recognition_event
 from ssh import disconnect_site_from_hq, delete_pod
-from main import HQ
+from hq import HQ
 from site_api import play_forensic
 
 

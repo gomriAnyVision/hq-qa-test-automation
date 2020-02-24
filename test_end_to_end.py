@@ -2,10 +2,12 @@ import sys
 import time
 
 from pprint import pformat
+
+from consul import consul_get_one, consul_set
 from Utils.logger import Logger
-from Utils.utils import Utils, wait_for, get_default_config
+from Utils.utils import Utils, wait_for, get_default_config, calculate_average
 from ssh import disconnect_site_from_hq, delete_pod
-from main import HQ
+from hq import HQ
 from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, healthy_cluster
 from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
@@ -86,29 +88,35 @@ if __name__ == '__main__':
         delete_site(HQ_MACHINES["server5-vm-0"])
     failed_to_add_site_counter = 0
     iteration_number = 0
+    timings = []
     logger.info("----------------------------------------------------------------")
     logger.info("                   STARTING MAIN TEST LOOP                      ")
     logger.info("----------------------------------------------------------------")
     while True:
-        for machine, ip in HQ_MACHINES.items():
+        for machine, ip in  HQ_MACHINES.items():
             logger.info(f"Successfully iteration: {iteration_number} "
-                        f"Failed iteration: {failed_to_add_site_counter}")
+                        f"Failed iteration: {failed_to_add_site_counter} ")
+            before_health_check = time.time()
             healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
             logger.info(f"Stop machine IP:{ip}, Name: {machine}")
             stop_machine(machine, wait_for_cluster, logger)
             HQ_MACHINES[machine] = None
             healthy_cluster("Healthy", logger, alive_hq_node_ip())
+            after_health_check = time.time()
+            hc_before_after = after_health_check - before_health_check
+            logger.info(f"Time it took to get a healthy cluster back was:"
+                        f" {hc_before_after} seconds")
             """Remove the machine we just stopped ip from the active ip list """
             hq_session = HQ()
             hq_session.login()
             hq_session.get_sites()
             for site in env_config:
                 # Attempting to add site again after deletion
-                feature_toggle_master = hq_session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
+                feature_toggle_master = consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
                 logger.info(f"Connect to consul at {site['site_consul_ip']} "
                             f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master}")
                 if feature_toggle_master == "false":
-                    hq_session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
+                    consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
                     delete_pod(ip=env_config[0]['site_extarnel_ip'],
                                username=env_config[0]['ssh']['username'],
                                password=env_config[0]['ssh']['password'],
@@ -151,9 +159,25 @@ if __name__ == '__main__':
             except:
                 logger.error("Failed to get event from HQ")
                 sys.exit(0)
+            time_until_recognitions = time.time()
+            hc_stop_to_recog = time_until_recognitions - before_health_check
+            logger.info(f"Time from stopping node to the getting recognition event:"
+                        f" {hc_stop_to_recog}")
+            current_iteration_times = {
+                "hc_before_after": hc_before_after,
+                "hc_stop_to_recog": hc_stop_to_recog
+            }
+            timings.append(current_iteration_times)
             if args.remove_site:
                 delete_site(alive_hq_node_ip())
             start_machine(machine, wait_for_cluster, logger)
             """Add back the machine we just started ip to the active ip list """
             HQ_MACHINES[machine] = ip
             iteration_number += 1
+            logger.info(f"{pformat(timings)}")
+            all_hc_before_after = [item['hc_before_after'] for item in timings]
+            all_hc_stop_to_recog = [item['hc_stop_to_recog'] for item in timings]
+            average_hc_before_after = calculate_average(all_hc_before_after)
+            average_hc_stop_to_recog = calculate_average(all_hc_stop_to_recog)
+            logger.info(f"average time: hc_before_after - {average_hc_before_after}" 
+                        f"average time: hc_stop_to_recog - {average_hc_stop_to_recog}")

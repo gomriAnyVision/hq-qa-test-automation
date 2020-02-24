@@ -8,8 +8,9 @@ from pprint import pprint
 from googleapiclient import discovery
 
 from Utils.utils import Utils, wait_for, get_default_config
-from main import consul_get_leader, verify_all_consul_members_alive, HQ, consul_get_all_nodes_healthcheck,\
-    consul_get_with_consistency
+from hq import HQ
+from consul import consul_get_all_nodes_healthcheck, verify_all_consul_members_alive,\
+    consul_get_with_consistency, consul_get_leader
 from ssh import k8s_cluster_status, hq_pod_healthy, mongo_has_primary, \
     consul_nodes, gravity_cluster_status
 
@@ -215,9 +216,6 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
                 logger.error(f"Failed to find enough active consul member nodes "
                              f"consul_active_members returned: {consul_active_members}")
                 continue
-            # if minimum_nodes_running == 3:
-            #     logger.info(f"Sleeping 300 seconds minimum_nodes_running: {minimum_nodes_running}")
-            #     time.sleep(300)
             hq_session = HQ()
             hq_login_res = hq_session.login()
             logger.info(f"HQ login result {hq_login_res}")
