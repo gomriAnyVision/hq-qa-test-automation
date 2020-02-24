@@ -93,8 +93,9 @@ class Utils(object):
                                              "to see what it should contain. config must be in the "
                                              "config/{you're config}.json",
                             default=os.path.abspath(os.path.join(__file__, '../../config/config.json')))
-        parser.add_argument("--do_health_check", help="True - Will run health checks before continuing tests")
+        parser.add_argument("--health_check", help="True - Will run health checks before continuing tests")
         parser.add_argument("--remove_site", help="True - Deletes site")
+        parser.add_argument("--stop_nodes", help="True - Stop HQ HA nodes during end to end test")
         return parser.parse_args()
 
     def randomString(self, string_length=10):

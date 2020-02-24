@@ -99,7 +99,8 @@ if __name__ == '__main__':
             before_health_check = time.time()
             healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
             logger.info(f"Stop machine IP:{ip}, Name: {machine}")
-            stop_machine(machine, wait_for_cluster, logger)
+            if args.stop_nodes:
+                stop_machine(machine, wait_for_cluster, logger)
             HQ_MACHINES[machine] = None
             healthy_cluster("Healthy", logger, alive_hq_node_ip())
             after_health_check = time.time()
