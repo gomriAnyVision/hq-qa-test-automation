@@ -1,5 +1,4 @@
 import time
-
 import requests
 import json
 import base64
@@ -18,6 +17,7 @@ class HQ(object):
             res = requests.post('https://hq-api.tls.ai/master/login',
                                 data={'username': 'admin', 'password': 'admin'})
             time.sleep(1)
+            print(res, res.text)
             assert res.status_code == 200
             self.request_headers['authorization'] = res.json()['token']
             return True
@@ -117,42 +117,8 @@ class HQ(object):
             if site_sync_status and sites_ids:
                 return sites_ids, site_sync_status
 
-    def consul_set(self, key, value, config):
-        data = value
-        res = requests.put(f"http://{config['site_consul_ip']}/v1/kv/{key}", data=data,
-                           auth=("admin", "Passw0rd123"))
-        return res.json()
-
-    def consul_get_one(self, key, config):
-        res = requests.get(f"http://{config['site_consul_ip']}/v1/kv/{key}",
-                           auth=("admin", "Passw0rd123"))
-        decoded_res = base64.b64decode(res.json()[0]['Value']).decode("utf-8")
-        return decoded_res
-
-
-def consul_get_leader(ip):
-    try:
-        res = requests.get(f"http://{ip}/consul/v1/status/leader", auth=("admin", "Passw0rd123"))
-        assert res.status_code == 200
-        if res and res != "":
-            return True
-    except:
-        return False
-
-
-def verify_all_consul_members_alive(ip):
-    try:
-        res = requests.get(f"http://{ip}/consul/v1/agent/members", auth=("admin", "Passw0rd123"))
-        print(res.text, res.status_code)
-        # Check that all consul members are alive
-        alive_members = len([item.get('Status') for item in res.json()])
-        print(f"Number of Consul alive Members: {alive_members}")
-        return alive_members
-    except:
-        return False
 
 if __name__ == "__main__":
     hq_session = HQ()
-    s = consul_get_leader("192.168.122.191")
     subject_ids = hq_session.get_subject_ids(1000)
     hq_session.delete_suspects(subject_ids)
