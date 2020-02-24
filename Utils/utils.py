@@ -4,6 +4,7 @@ import string
 import random
 import time
 import os
+import numpy as np
 
 DEFAULT_CONFIG = "config.json"
 HOSTS_FILE = "/etc/hosts"
@@ -106,3 +107,6 @@ def get_default_config():
     with open("./config.json", "rb") as config:
         return json.load(config)
 
+
+def calculate_average(array):
+    return np.mean(array)
