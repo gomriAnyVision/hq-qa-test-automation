@@ -1,15 +1,17 @@
 import json
+import time
 import googleapiclient
 import requests
-from paramiko.ssh_exception import NoValidConnectionsError
 
+from paramiko.ssh_exception import NoValidConnectionsError
 from pprint import pprint
 from googleapiclient import discovery
 
 from Utils.utils import Utils, wait_for, get_default_config
-from main import consul_get_leader, verify_all_consul_members_alive, HQ
-from ssh import gravity_cluster_status, k8s_cluster_status, hq_pod_healthy, consul_elected_leader, mongo_has_primary, \
-    consul_nodes
+from main import consul_get_leader, verify_all_consul_members_alive, HQ, consul_get_all_nodes_healthcheck,\
+    consul_get_with_consistency
+from ssh import k8s_cluster_status, hq_pod_healthy, mongo_has_primary, \
+    consul_nodes, gravity_cluster_status
 
 
 class MachineManagement(object):
@@ -161,46 +163,72 @@ def running_hq_node(logger):
 
 
 def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
-    ssh_config = config['vm'][0]['ssh']
     logger.info(f"Started health checks on cluster")
     while True:
         try:
+            wait_for(10, "Waiting to start health checks again",logger)
             logger.info(f"Attempting to connect to {hq_ip} and run health checks")
-            ready_nodes_k8s_count = k8s_cluster_status(ip=hq_ip,
-                                                       username=ssh_config['username'],
-                                                       password=ssh_config['password'],
-                                                       pem_path=ssh_config['pem_path'], )
+            gravity_ready_nodes = gravity_cluster_status(logger, hq_ip)
+            logger.info(f"gravity_ready_nodes: {gravity_ready_nodes}")
+            if len(gravity_ready_nodes) < minimum_nodes_running:
+                logger.error(f"Failed get enough gravity nodes: {len(gravity_ready_nodes)}")
+                continue
+            ready_nodes_k8s_count = k8s_cluster_status(hq_ip)
             logger.info(f"K8S ready nodes count: {ready_nodes_k8s_count}")
+            if int(ready_nodes_k8s_count) < minimum_nodes_running:
+                logger.error(f"ready_nodes_k8s_count: {ready_nodes_k8s_count}")
+                continue
+            consul_active = consul_get_with_consistency(logger, hq_ip, "HQ_HA_TESTING_AUTOMATION/TEST", str(time.time()))
+            logger.info(f"consul_get_with_consistency: {consul_active}")
+            if not consul_active:
+                logger.error(f"Failed on consul_active: {consul_active}")
+                continue
             hq_pod_health = hq_pod_healthy(logger, ip=hq_ip)
             logger.info(f"HQ pod health: {hq_pod_health}")
-            consul_elected_leader = consul_get_leader(ip=hq_ip)
+            if not hq_pod_health:
+                logger.error(f"Failed to find healthy hq pod hq_pod_healthy returned: {hq_pod_health}")
+                continue
+            consul_elected_leader = consul_get_leader(logger, ip=hq_ip)
             logger.info(f"Consul elected leader: {consul_elected_leader}")
+            if not consul_get_leader:
+                logger.error(f"Consul failed to elect leader consul_elected_leader: {consul_elected_leader}")
+                continue
             mongo_health = mongo_has_primary(logger, ip=hq_ip)
             logger.info(f"Mongo health: {mongo_health}")
+            if not mongo_health:
+                logger.error(f"Failed to find mongo leader mongo_health returned: {mongo_health}")
+                continue
             ready_consul_nodes = consul_nodes(logger, ip=hq_ip)
             logger.info(f"Ready consul nodes: {ready_consul_nodes}")
+            if ready_consul_nodes < minimum_nodes_running:
+                logger.error(f"Failed to find enough consul nodes running "
+                             f"ready_consul_nodes returned: {ready_consul_nodes}")
+                continue
+            ready_hc_consul_nodes = consul_get_all_nodes_healthcheck(ip=hq_ip, num_servers=minimum_nodes_running)
+            if not ready_hc_consul_nodes:
+                logger.error(f"Failed to find enough consul nodes healthy "
+                             f"ready_hc_consul_nodes returned: {ready_hc_consul_nodes}")
+                continue
             consul_active_members = verify_all_consul_members_alive(hq_ip)
             logger.info(f"Ready active member nodes: {consul_active_members}")
+            if consul_active_members < minimum_nodes_running:
+                logger.error(f"Failed to find enough active consul member nodes "
+                             f"consul_active_members returned: {consul_active_members}")
+                continue
+            # if minimum_nodes_running == 3:
+            #     logger.info(f"Sleeping 300 seconds minimum_nodes_running: {minimum_nodes_running}")
+            #     time.sleep(300)
             hq_session = HQ()
             hq_login_res = hq_session.login()
-            logger.info(f"HQ login rresult {hq_login_res}")
-            if int(ready_nodes_k8s_count) >= minimum_nodes_running and hq_pod_health and \
-                    consul_elected_leader and mongo_health and ready_consul_nodes >= minimum_nodes_running and\
-                    hq_pod_health and consul_active_members >= minimum_nodes_running and hq_login_res:
-                logger.info(
-                    f"Cluster status hq_pod_health: {hq_pod_health}, consul_elected_leader: {consul_elected_leader}, mongo_health: {mongo_health} "
-                    f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes} " 
-                    f" Consul active members: {consul_active_members} HQ available :{hq_login_res} ")
-                return True
-            else:
-                logger.info(
-                    f"Cluster status hq_pod_health:{hq_pod_health}, consul_elected_leader: {consul_elected_leader}, monog_health: {mongo_health} "
-                    f", k8s ready nodes: {ready_nodes_k8s_count}, Consul ready nodes: {ready_consul_nodes} "
-                    f" Consul active members: {consul_active_members} HQ available: {hq_login_res} ")
-                wait_for(10, "Waiting 10 seconds before checking cluster status again", logger)
+            logger.info(f"HQ login result {hq_login_res}")
+            if not hq_login_res:
+                logger.error(f"Failed to login to HQ hq_login_res returned: {hq_login_res}")
+                continue
+            return
         except NoValidConnectionsError:
-            wait_for(10, f"Failed to login to: {hq_ip}, waiting 10 seconds ", logger)
             logger.error('Failed to login')
+            wait_for(10, f"Failed to SSH to: {hq_ip}, waiting 10 seconds ", logger)
+
 
 def stop_machine(machine, wait_timeout, logger):
     if len(machine_mgmt.list_started_machine()) == 4:
