@@ -99,31 +99,24 @@ echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 
         print(f"exec get sync status split_sync: {split_sync} was empty")
 
 
-def gravity_cluster_status(**config):
+def gravity_cluster_status(logger, ip):
     command = "gravity status --output json"
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(hostname=config['ip'],
-                username=config['username'],
-                password=config['password'],
-                key_filename=None if config['pem_path'] == "" else config['pem_path'])
+    ssh = _ssh_connect(hostname=ip)
     stdin, stdout, stderr = ssh.exec_command(command)
     decode_out = stdout.read().decode("utf-8")
     json_output = json.loads(decode_out)
+    current_status = [status['status'] for status in json_output['cluster']['nodes']]
+    logger.info(f"gravity_cluster_status: {current_status}")
     cluster_status = []
     for node in json_output['cluster']['nodes']:
-        cluster_status.append(node['status'])
-    return cluster_status if cluster_status else None
+        if node['status'] == "healthy":
+            cluster_status.append(node['status'])
+    return cluster_status
 
 
-def k8s_cluster_status(**config):
+def k8s_cluster_status(ip):
     command = "kubectl get no --no-headers | grep -iv NotReady | wc -l"
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(hostname=config['ip'],
-                username=config['username'],
-                password=config['password'],
-                key_filename=None if config['pem_path'] == "" else config['pem_path'])
+    ssh = _ssh_connect(hostname=ip)
     stdin, stdout, stderr = ssh.exec_command(command)
     running_nodes = stdout.read().decode("utf-8")
     return running_nodes
@@ -161,7 +154,6 @@ def hq_pod_healthy(logger, ip):
     command = "kubectl get pod -l=app=hq | grep -v Terminating | grep -i 2/2 | awk {\'print $1\'}"
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_config = config['vm'][0]['ssh']
     ssh = _ssh_connect(hostname=ip)
     stdin, stdout, stderr = ssh.exec_command(command)
     result = stdout.read()
@@ -176,7 +168,8 @@ echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 
     """
     ssh = _ssh_connect(hostname=ip)
     stdin, stdout, stderr = ssh.exec_command(command)
-    result = stdout.read().decode("utf-8")
+    result = stdout.read()
+    result = result.decode("utf-8")
     return True if result else False
 
 
