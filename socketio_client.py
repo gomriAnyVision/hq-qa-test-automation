@@ -1,4 +1,8 @@
+import logging
+import sys
+
 import socketio
+from socketio.exceptions import ConnectionError
 import threading
 import time
 
@@ -9,12 +13,23 @@ SUBJECTS_IMPORTED = 10
 
 event_count = {}
 
+socket_logger = logging.getLogger("socket_logger")
+socket_logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler = logging.FileHandler("execution.log")
+file_handler.setFormatter(formatter)
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(formatter)
+socket_logger.addHandler(file_handler)
+socket_logger.addHandler(handler)
+
 
 def _connect_to_socket_and_wait():
     sio.connect(HOST)
     try:
         sio.wait()
-    except:
+    except ConnectionError:
+        print(ConnectionError.with_traceback())
         pass
 
 
@@ -41,6 +56,7 @@ def on_mass_mass_import_completed(*args):
 
 @sio.on("new_recognition")
 def on_recognition(*args):
+    socket_logger.debug(f"new_recognition event: {args}")
     event_count["on_recognition"] = 1
 
 
@@ -74,7 +90,7 @@ def verify_mass_import_event(session, args, logger, sleep=5):
     socket_thread.join()
 
 # TODO: Fix bug ValueError: Client is not in a disconnected state
-def verify_recognition_event(logger, sleep=20):
+def verify_recognition_event(sleep=20):
     """
     Executes the add single subject task and verify the subject is created in the site by verify an event
     is received when the subject is recognized
@@ -83,18 +99,19 @@ def verify_recognition_event(logger, sleep=20):
     :param logger: logger to log the results
     :param sleep: how long ot wait for the recognition event
     """
+    socket_logger.info("Connecting to HQ dashboard socketio waiting for recognition event")
     _disconnect()
     socket_thread = threading.Thread(target=_connect_to_socket_and_wait)
-    socket_thread.setDaemon(True)
-    socket_thread.start()
-    logger.info("Waiting for recognition event")
-    time.sleep(sleep)
     try:
+        socket_thread.setDaemon(True)
+        socket_thread.start()
+        socket_logger.info("Waiting for recognition event")
+        time.sleep(sleep)
         assert event_count["on_recognition"] > 0
         print(event_count)
         _disconnect()
         return event_count
     except AssertionError:
-        logger.error(f"Failed to receive recognition event {HOST}")
+        socket_logger.error(f"Failed to receive recognition event {HOST}")
     _disconnect()
     socket_thread.join()
