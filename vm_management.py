@@ -19,21 +19,6 @@ class MachineManagement(object):
     def __init__(self, machine_mgmt_service):
         self.service = machine_mgmt_service
 
-    def stop(self, name):
-        return self.service.stop(name)
-
-    def start(self, name):
-        return self.service.start(name)
-
-    def get(self, name):
-        return self.service.get(name)
-
-    def machine_list(self):
-        return self.machine_list()
-
-    def list_started_machine(self):
-        return self.service.list_started_machine()
-
     def ensure_all_machines_started(self, logger):
         logger.info("Attempting to start all hq nodes")
         return self.service.ensure_all_machines_started(logger)
@@ -130,7 +115,7 @@ class GcpInstanceMgmt(object):
         pprint(response["status"])
 
 
-machine_mgmt = MachineManagement(VmMgmt())
+machine_mgmt = VmMgmt()
 config = get_default_config()
 
 
@@ -206,6 +191,7 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
                              f"ready_consul_nodes returned: {ready_consul_nodes}")
                 continue
             ready_hc_consul_nodes = consul_get_all_nodes_healthcheck(ip=hq_ip, num_servers=minimum_nodes_running)
+            logger.info(f"Health consul nodes amount: {ready_hc_consul_nodes}")
             if not ready_hc_consul_nodes:
                 logger.error(f"Failed to find enough consul nodes healthy "
                              f"ready_hc_consul_nodes returned: {ready_hc_consul_nodes}")
