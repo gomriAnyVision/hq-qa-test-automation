@@ -60,15 +60,23 @@ class VmMgmt(object):
 
     def list_started_machine(self):
         all_machines_status = []
-        for machine_name, values in self.machine_list().items():
-            all_machines_status.append(values['status'])
+        try:
+            for machine_name, values in self.machine_list().items():
+                all_machines_status.append(values['status'])
+        except AttributeError:
+            for machine in self.machine_list():
+                all_machines_status.append(machine['status'])
         only_on_machines = list(filter(lambda status: status == 'on', all_machines_status))
         return list(only_on_machines)
 
     def machine_names(self):
         all_machines_names = []
-        for machine_name, values in self.machine_list().items():
-            all_machines_names.append({"machine_name": machine_name, "status": values['status']})
+        try:
+            for machine_name, values in self.machine_list().items():
+                all_machines_names.append({"machine_name": machine_name, "status": values['status']})
+        except AttributeError:
+            for machine in self.machine_list():
+                all_machines_names.append({"machine_name": machine['name'], "status": machine['status']})
         return all_machines_names
 
     def ensure_all_machines_started(self, logger):
