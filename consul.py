@@ -63,6 +63,7 @@ def consul_get_all_nodes_healthcheck(ip, num_servers):
                             server_health.append(f'consul-server-{i}')
             except:
                 continue
+        print(server_health)
         if len(server_health) == num_servers:
             return True
         else:
