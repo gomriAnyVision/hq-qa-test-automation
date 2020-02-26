@@ -7,7 +7,6 @@ from Utils.utils import get_default_config, Utils, calculate_average
 from tasks import task_wait_for_recog
 from vm_management import MachineManagement, VmMgmt, stop_machine, healthy_cluster, start_machine
 
-HQ_MACHINES = get_default_config()['hq_machines']
 SYNC_STATUS = None
 RESULT_TIMES = []
 WAIT_FOR_CLUSTER = 0
@@ -26,8 +25,7 @@ logger.addHandler(handler)
 
 
 def alive_hq_node_ip():
-    global HQ_MACHINES
-    for machine, ip in HQ_MACHINES.items():
+    for machine, ip in hq_machines.items():
         if ip:
             return ip
 
@@ -39,6 +37,7 @@ if __name__ == '__main__':
     logger.info(f"Starting tests with {args}")
     env_config = Utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")
+    hq_machines = utils.config['hq_machines']
     machine_mgmt = MachineManagement(VmMgmt())
     machine_mgmt.ensure_all_machines_started(logger)
     healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
@@ -49,11 +48,11 @@ if __name__ == '__main__':
     logger.info("                   STARTING MAIN TEST LOOP                      ")
     logger.info("----------------------------------------------------------------")
     while True:
-        for machine, ip in HQ_MACHINES.items():
+        for machine, ip in hq_machines.items():
             stop_node = time.time()
             logger.info(f"Stopping Machine:{machine} IP:{ip} ")
             stop_machine(machine, WAIT_FOR_CLUSTER, logger)
-            HQ_MACHINES[machine] = None
+            hq_machines[machine] = None
             task_wait_for_recog()
             received_recog = time.time()
             time_delta = received_recog - stop_node
@@ -62,7 +61,7 @@ if __name__ == '__main__':
             start_machine(machine, WAIT_FOR_CLUSTER, logger)
             healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
             AVERAGE_TIME = calculate_average(RESULT_TIMES)
-            HQ_MACHINES[machine] = ip
+            hq_machines[machine] = ip
             logger.info(f"average time from stopping node to receviing recognition from already connected site: "
                         f"{AVERAGE_TIME}")
             ITERATION_NUMBER += 1

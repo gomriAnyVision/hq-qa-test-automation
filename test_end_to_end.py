@@ -12,7 +12,6 @@ from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine
 from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
-HQ_MACHINES = get_default_config()['hq_machines']
 SYNC_STATUS = None
 
 
@@ -39,8 +38,7 @@ def delete_site():
 
 
 def alive_hq_node_ip():
-    global HQ_MACHINES
-    for machine, ip in HQ_MACHINES.items():
+    for machine, ip in hq_machines.items():
         if ip:
             return ip
 
@@ -52,10 +50,10 @@ if __name__ == '__main__':
     args = Utils.get_args()
     Utils.set_config(args.config)
     logger.info(f"Starting tests with {args}")
-    env_config = Utils.get_config(args.env)
+    env_config = utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")
-    hq_machines = Utils.get_config("hq_machines")
-    logger.info(f"Received config: {pformat(HQ_MACHINES)}")
+    hq_machines = utils.get_config("hq_machines")
+    logger.info(f"Received config: {pformat(hq_machines)}")
     machine_mgmt = MachineManagement(VmMgmt())
     wait_for_cluster = 0
     """Cleaning up before starting test by removing all sites which are connected to the HQ
@@ -75,14 +73,14 @@ if __name__ == '__main__':
     logger.info("                   STARTING MAIN TEST LOOP                      ")
     logger.info("----------------------------------------------------------------")
     while True:
-        for machine, ip in HQ_MACHINES.items():
+        for machine, ip in hq_machines.items():
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter} ")
             before_health_check = time.time()
             healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
             logger.info(f"Stop machine IP:{ip}, Name: {machine}")
             stop_machine(machine, wait_for_cluster, logger)
-            HQ_MACHINES[machine] = None
+            hq_machines[machine] = None
             healthy_cluster("Healthy", logger, alive_hq_node_ip())
             after_health_check = time.time()
             hc_before_after = after_health_check - before_health_check
@@ -118,7 +116,7 @@ if __name__ == '__main__':
                         if args.stop_nodes:
                             start_machine(machine, wait_for_cluster, logger)
                         """Add back the machine we just started ip to the active ip list """
-                        HQ_MACHINES[machine] = ip
+                        hq_machines[machine] = ip
                         failed_to_add_site_counter += 1
                         continue
             if failed_to_add_site_counter > 0:
@@ -148,7 +146,7 @@ if __name__ == '__main__':
                 delete_site(alive_hq_node_ip())
             start_machine(machine, wait_for_cluster, logger)
             """Add back the machine we just started ip to the active ip list """
-            HQ_MACHINES[machine] = ip
+            hq_machines[machine] = ip
             iteration_number += 1
             logger.info(f"{pformat(timings)}")
             all_hc_before_after = [item['hc_before_after'] for item in timings]
