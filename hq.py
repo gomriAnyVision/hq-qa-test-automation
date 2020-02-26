@@ -117,6 +117,17 @@ class HQ(object):
             if site_sync_status and sites_ids:
                 return sites_ids, site_sync_status
 
+    def get_sync_status(self):
+        if self.get_sites():
+            _, result = self.get_sites()
+            if result:
+                return result[0]
+
+    def get_sites_id(self):
+        if self.get_sites():
+            result, _ = self.get_sites()
+            if result:
+                return result
 
 if __name__ == "__main__":
     hq_session = HQ()
