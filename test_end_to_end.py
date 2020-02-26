@@ -140,7 +140,8 @@ if __name__ == '__main__':
             }
             timings.append(current_iteration_times)
             if args.remove_site:
-                delete_site(active_ip)
+                hq_active_node = active_ip(hq_machines)
+                delete_site(hq_active_node)
             start_machine(machine, wait_for_cluster, logger)
             """Add back the machine we just started ip to the active ip list """
             hq_machines[machine] = ip
