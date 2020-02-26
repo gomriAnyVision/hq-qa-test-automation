@@ -28,8 +28,7 @@ def _connect_to_socket_and_wait():
     sio.connect(HOST)
     try:
         sio.wait()
-    except ConnectionError:
-        print(ConnectionError.with_traceback())
+    except socketio.exceptions.ConnectionError:
         pass
 
 
