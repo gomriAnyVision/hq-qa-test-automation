@@ -4,7 +4,6 @@ import time
 from pprint import pformat
 
 from Utils.utils import get_default_config, Utils, calculate_average
-from hq import HQ
 from tasks import task_wait_for_recog
 from vm_management import MachineManagement, VmMgmt, stop_machine, healthy_cluster, start_machine
 
@@ -36,7 +35,7 @@ def alive_hq_node_ip():
 if __name__ == '__main__':
     Utils = Utils()
     args = Utils.get_args()
-    Utils.set_config(args.config)
+    Utils.load_config(args.config)
     logger.info(f"Starting tests with {args}")
     env_config = Utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")

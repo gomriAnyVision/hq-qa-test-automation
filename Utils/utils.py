@@ -68,7 +68,7 @@ class Utils(object):
         with open(DEFAULT_CONFIG, "rb") as config_json:
             self.default_config = json.load(config_json)
 
-    def set_config(self, config_path):
+    def load_config(self, config_path):
         if not os.path.exists(config_path):
             return
         with open(config_path, "rb") as config_file:
