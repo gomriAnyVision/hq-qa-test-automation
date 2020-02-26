@@ -26,8 +26,10 @@ class MachineManagement(object):
 
 class VmMgmt(object):
     def _get_allocator_ip(self):
-        Util = Utils()
-        config = Util.get_config('allocator')
+        utils = Utils()
+        args = utils.get_args()
+        utils.load_config(args.config)
+        config = utils.get_config('allocator')
         return config['ip']
 
     def _get_allocator_url(self):
