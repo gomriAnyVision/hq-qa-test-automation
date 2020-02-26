@@ -5,7 +5,7 @@ from pprint import pformat
 
 from consul import consul_get_one, consul_set
 from Utils.logger import Logger
-from Utils.utils import Utils, wait_for, get_default_config, calculate_average
+from Utils.utils import Utils, wait_for, calculate_average, active_ip
 from ssh import disconnect_site_from_hq, delete_pod
 from hq import HQ
 from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, healthy_cluster
@@ -15,7 +15,7 @@ from site_api import play_forensic, is_service_available
 SYNC_STATUS = None
 
 
-def delete_site():
+def delete_site(active_hq_node):
     sites_id = hq_session.get_sites_id()
     try:
         remove_site_from_hq = hq_session.remove_site(sites_id)
@@ -26,9 +26,9 @@ def delete_site():
                                               username=env_config[0]['ssh']['username'],
                                               password=env_config[0]['ssh']['password'],
                                               pem_path=env_config[0]['ssh']['pem_path'])
-    logger.debug(f"Attempting connection to {alive_hq_node_ip}")
+    logger.debug(f"Attempting connection to {active_hq_node}")
     logger.info(f"Attemping to disconnect site from HQ")
-    delete_pod(ip=alive_hq_node_ip,
+    delete_pod(ip=active_hq_node,
                username=env_config[0]['ssh']['username'],
                password=env_config[0]['ssh']['password'],
                pem_path=env_config[0]['ssh']['pem_path'],
@@ -37,18 +37,12 @@ def delete_site():
     logger.info("No sites to delete")
 
 
-def alive_hq_node_ip():
-    for machine, ip in hq_machines.items():
-        if ip:
-            return ip
-
-
 if __name__ == '__main__':
     Logger = Logger()
-    Utils = Utils()
+    utils = Utils()
     logger = Logger.get_logger()
-    args = Utils.get_args()
-    Utils.set_config(args.config)
+    args = utils.get_args()
+    utils.load_config(args.config)
     logger.info(f"Starting tests with {args}")
     env_config = utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")
@@ -61,11 +55,12 @@ if __name__ == '__main__':
     logger.info(f"Setup the machine_mgmt class {machine_mgmt}")
     if machine_mgmt.ensure_all_machines_started(logger):
         wait_for(wait_for_cluster, "Sleeping after starting all machines", logger)
-    healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
+    active_hq_node = active_ip(hq_machines)
+    healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
     hq_session = HQ()
     hq_session.login()
     if args.remove_site:
-        delete_site(alive_hq_node_ip())
+        delete_site(active_hq_node)
     failed_to_add_site_counter = 0
     iteration_number = 0
     timings = []
@@ -77,11 +72,13 @@ if __name__ == '__main__':
             logger.info(f"Successfully iteration: {iteration_number} "
                         f"Failed iteration: {failed_to_add_site_counter} ")
             before_health_check = time.time()
-            healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
+            active_hq_node = active_ip(hq_machines)
+            healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
             logger.info(f"Stop machine IP:{ip}, Name: {machine}")
             stop_machine(machine, wait_for_cluster, logger)
             hq_machines[machine] = None
-            healthy_cluster("Healthy", logger, alive_hq_node_ip())
+            active_hq_node = active_ip(hq_machines)
+            healthy_cluster("Healthy", logger, active_hq_node)
             after_health_check = time.time()
             hc_before_after = after_health_check - before_health_check
             logger.info(f"Time it took to get a healthy cluster back was:"
@@ -143,7 +140,7 @@ if __name__ == '__main__':
             }
             timings.append(current_iteration_times)
             if args.remove_site:
-                delete_site(alive_hq_node_ip())
+                delete_site(active_ip)
             start_machine(machine, wait_for_cluster, logger)
             """Add back the machine we just started ip to the active ip list """
             hq_machines[machine] = ip

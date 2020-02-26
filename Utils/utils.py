@@ -65,6 +65,7 @@ def etc_hosts_restore(history):
 class Utils(object):
     def __init__(self):
         self.config = ""
+        self.args = {}
         with open(DEFAULT_CONFIG, "rb") as config_json:
             self.default_config = json.load(config_json)
 
@@ -96,6 +97,7 @@ class Utils(object):
         parser.add_argument("--health_check", help="True - Will run health checks before continuing tests")
         parser.add_argument("--remove_site", help="True - Deletes site")
         parser.add_argument("--stop_nodes", help="True - Stop HQ HA nodes during end to end test")
+        self.args = parser.parse_args()
         return parser.parse_args()
 
     def randomString(self, string_length=10):
@@ -104,9 +106,11 @@ class Utils(object):
         return ''.join(random.choice(letters) for i in range(string_length))
 
 
-def get_default_config():
-    with open("./config.json", "rb") as config:
-        return json.load(config)
+def active_ip(machine_list):
+    for machine, ip in machine_list.items():
+        if ip:
+            return ip
+
 
 
 def calculate_average(array):

@@ -1,18 +1,16 @@
 import json
 import logging
 import sys
-import time
 
 import paramiko
 
-from Utils.utils import get_default_config, wait_for
+from Utils.utils import Utils
 
 file_path = "scripts/disconnect_site_from_hq.sh"
 script_path = "disconnect_site_from_hq.sh"
 
 # TODO: Find a way to know if your running on cloud or VM without user input
 
-config = get_default_config()
 """
 Stop the paramiko logg from overflowing the logging
 """
@@ -139,8 +137,10 @@ def consul_elected_leader(logger, **kwargs):
 
 
 def _ssh_connect(hostname):
-    config = get_default_config()
-    ssh_config = config['vm'][0]['ssh']
+    utils = Utils()
+    utils.get_args()
+    utils.load_config(utils.args.config)
+    ssh_config = utils.config['vm'][0]['ssh']
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(hostname=hostname,

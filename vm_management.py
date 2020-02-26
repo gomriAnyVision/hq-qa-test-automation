@@ -7,7 +7,7 @@ from paramiko.ssh_exception import NoValidConnectionsError
 from pprint import pprint
 from googleapiclient import discovery
 
-from Utils.utils import Utils, wait_for, get_default_config
+from Utils.utils import Utils, wait_for
 from hq import HQ
 from consul import consul_get_all_nodes_healthcheck, verify_all_consul_members_alive,\
     consul_get_with_consistency, consul_get_leader
@@ -126,7 +126,9 @@ class GcpInstanceMgmt(object):
 
 
 machine_mgmt = VmMgmt()
-config = get_default_config()
+utils = Utils()
+utils.get_args()
+config = utils.load_config(utils.args.config)
 
 
 def start_machine(machine, wait_timeout, logger):

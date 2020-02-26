@@ -3,7 +3,7 @@ import sys
 import time
 from pprint import pformat
 
-from Utils.utils import get_default_config, Utils, calculate_average
+from Utils.utils import active_ip, Utils, calculate_average
 from tasks import task_wait_for_recog
 from vm_management import MachineManagement, VmMgmt, stop_machine, healthy_cluster, start_machine
 
@@ -24,23 +24,18 @@ logger.addHandler(file_handler)
 logger.addHandler(handler)
 
 
-def alive_hq_node_ip():
-    for machine, ip in hq_machines.items():
-        if ip:
-            return ip
-
-
 if __name__ == '__main__':
-    Utils = Utils()
-    args = Utils.get_args()
-    Utils.load_config(args.config)
+    utils = Utils()
+    args = utils.get_args()
+    utils.load_config(args.config)
     logger.info(f"Starting tests with {args}")
-    env_config = Utils.get_config(args.env)
+    env_config = utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")
     hq_machines = utils.config['hq_machines']
     machine_mgmt = MachineManagement(VmMgmt())
     machine_mgmt.ensure_all_machines_started(logger)
-    healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
+    active_hq_node = active_ip(hq_machines)
+    healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
     # TODO: add function to play stream
     # TODO: Add site before test starts
     # TODO: Ensure we have subjects in HQ watchlist
@@ -59,7 +54,8 @@ if __name__ == '__main__':
             logger.info(f"It took {time_delta} seconds to get recognition event after stopping ndoe")
             RESULT_TIMES.append(time_delta)
             start_machine(machine, WAIT_FOR_CLUSTER, logger)
-            healthy_cluster("Healthy", logger, alive_hq_node_ip(), minimum_nodes_running=3)
+            active_hq_node = active_ip(hq_machines)
+            healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
             AVERAGE_TIME = calculate_average(RESULT_TIMES)
             hq_machines[machine] = ip
             logger.info(f"average time from stopping node to receviing recognition from already connected site: "
