@@ -1,4 +1,6 @@
 import json
+import time
+
 import requests
 
 from Utils.logger import myLogger
@@ -33,5 +35,7 @@ def is_service_available(ip, port):
             logger.info(f"res from {ip}:{port} - {result.text}")
             return result
         except:
-            logger.error(f"{result}")
+            logger.error(f"Failed to get healthy status from from {ip}:{port} "
+                         f"Result - {result} sleeping 2 sceonds and trying again")
+            time.sleep(2)
 

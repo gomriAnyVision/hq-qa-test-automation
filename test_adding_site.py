@@ -34,7 +34,7 @@ if __name__ == '__main__':
         for machine, ip in hq_machines.items():
             stop_node = time.time()
             logger.info(f"Stopping Machine:{machine} IP:{ip} ")
-            stop_machine(machine, WAIT_FOR_CLUSTER, logger)
+            stop_machine(machine, WAIT_FOR_CLUSTER)
             hq_machines[machine] = None
             # Attempt to add site
             site_id = wait_for_add_site(hq_session, utils.config)
@@ -42,9 +42,9 @@ if __name__ == '__main__':
             time_delta = added_site - stop_node
             logger.info(f"It took {time_delta} seconds to ADD SITE after stopping node")
             RESULT_TIMES.append(time_delta)
-            start_machine(machine, WAIT_FOR_CLUSTER, logger)
-            active_hq_node = active_ip(hq_machines)
+            start_machine(machine, WAIT_FOR_CLUSTER)
             logger.info(f"STARTING CLEAN UP")
+            active_hq_node = active_ip(hq_machines)
             healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
             AVERAGE_TIME = calculate_average(RESULT_TIMES)
             hq_machines[machine] = ip
@@ -52,7 +52,7 @@ if __name__ == '__main__':
             hq_session.login()
             delete_site(active_hq_node, hq_session, utils.config)
             logger.info("FINISHED CLEAN UP")
-            logger.info(f"average time from stopping node to add site: {AVERAGE_TIME}")
+            logger.info(f"average time from stopping node to adding site: {AVERAGE_TIME}")
             ITERATION_NUMBER += 1
             logger.info(f"Number of iterations: {ITERATION_NUMBER}")
 

@@ -38,7 +38,6 @@ def wait_for_add_site(hq_session, config):
                        password=password,
                        pem_path=pem_path,
                        pod_name="site")
-            wait_for(20, "Waiting for api to restart after feature toggle master", tasks_logger)
         if is_service_available(site_extarnel_ip, 3000) and is_service_available(site_extarnel_ip, 16180):
             try:
                 hq_session.login()
