@@ -3,8 +3,9 @@ import sys
 import time
 from pprint import pformat
 
+from Utils.logger import myLogger
 from Utils.utils import active_ip, Utils, calculate_average
-from tasks import task_wait_for_recog
+from tasks import wait_for_recog
 from vm_management import MachineManagement, VmMgmt, stop_machine, healthy_cluster, start_machine
 
 SYNC_STATUS = None
@@ -13,20 +14,12 @@ WAIT_FOR_CLUSTER = 0
 ITERATION_NUMBER = 1
 AVERAGE_TIME = 0
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler = logging.FileHandler("execution.log")
-file_handler.setFormatter(formatter)
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-logger.addHandler(handler)
 
 
 if __name__ == '__main__':
     utils = Utils()
     args = utils.get_args()
+    logger = myLogger(__name__)
     utils.load_config(args.config)
     logger.info(f"Starting tests with {args}")
     env_config = utils.get_config(args.env)
@@ -48,7 +41,7 @@ if __name__ == '__main__':
             logger.info(f"Stopping Machine:{machine} IP:{ip} ")
             stop_machine(machine, WAIT_FOR_CLUSTER, logger)
             hq_machines[machine] = None
-            task_wait_for_recog()
+            wait_for_recog()
             received_recog = time.time()
             time_delta = received_recog - stop_node
             logger.info(f"It took {time_delta} seconds to get recognition event after stopping ndoe")

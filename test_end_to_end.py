@@ -4,7 +4,7 @@ import time
 from pprint import pformat
 
 from consul import consul_get_one, consul_set
-from Utils.logger import Logger
+from Utils.logger import myLogger
 from Utils.utils import Utils, wait_for, calculate_average, active_ip
 from ssh import delete_pod
 from hq import HQ
@@ -17,9 +17,8 @@ SYNC_STATUS = None
 
 
 if __name__ == '__main__':
-    Logger = Logger()
     utils = Utils()
-    logger = Logger.get_logger()
+    logger = myLogger(__name__)
     args = utils.get_args()
     utils.load_config(args.config)
     logger.info(f"Starting tests with {args}")
