@@ -1,29 +1,36 @@
 import time
+from pprint import pformat
+
 import requests
 import json
 import base64
 
+from Utils.logger import myLogger
 from Utils.utils import Utils
 
 DEFAULT_FACE_GROUP = 'ffffffffffffffffffff0000'
+
+logger = myLogger(__name__)
 
 
 class HQ(object):
     def __init__(self):
         self.request_headers = {}
 
+    def get_request_headers(self):
+        return self.request_headers if self.request_headers else None
+
     def login(self):
         try:
             res = requests.post('https://hq-api.tls.ai/master/login',
                                 data={'username': 'admin', 'password': 'admin'})
             time.sleep(1)
-            print(res, res.text)
+            logger.info(f"Response: {res}, response text {res.status_code}")
             assert res.status_code == 200
             self.request_headers['authorization'] = res.json()['token']
             return True
-        except:
-            print("Failed to login")
-            return False
+        except requests.exceptions.RequestException as err:
+            logger.error(f"Failed to login error: {err}")
 
     def add_subject(self, image="assets/subject.jpeg"):
         with open(image, 'rb') as image_object:
@@ -91,18 +98,20 @@ class HQ(object):
         else:
             return
 
-    def add_site(self, config):
+    def add_site(self, ip):
         self.request_headers['Content-Type'] = "application/json; charset=utf-8"
         payload = {
-            "host": f"http://{config['site_internal_ip']}:3000",
-            "rmqConnString": f"amqp://{config['site_internal_ip']}:5672",
-            "syncServiceUri": f"http://{config['site_internal_ip']}:16180",
-            "title": f"site {config['site_internal_ip']}",
-            "storageUri": f"https://{config['hq_url']}/r/{config['site_extarnel_ip']}"
+            "host": f"http://{ip}:3000",
+            "rmqConnString": f"amqp://{ip}:5672",
+            "syncServiceUri": f"http://{ip}:16180",
+            "title": f"site {ip}",
+            "storageUri": f"https://hq.tls.ai/r/{ip}"
         }
+        logger.debug(f"Add site request payload: {pformat(payload)}")
         res = requests.post("https://hq-api.tls.ai/master/sites", headers=self.request_headers,
                             data=json.dumps(payload))
-        print(res.status_code, res.text)
+        logger.info(f"response status code: {res.status_code}, text: {res.text}")
+        logger.debug(f"Res add site: {res}")
         return res.json()['_id']
 
     def get_sites(self):
@@ -110,12 +119,15 @@ class HQ(object):
         positions 0 - sites_ids: all the sites which are connected to the HQ's ids
         positions 1 - site_sync_status: all the the sites which are connected to the HQ's sync status'
         """
-        res = requests.get("https://hq-api.tls.ai/master/sites?withCameras=true", headers=self.request_headers)
-        if res.json() and res.json() != []:
-            sites_ids = [site_id['_id'] for site_id in res.json()]
-            site_sync_status = [sync_status["syncStatus"].get('status') for sync_status in res.json()]
-            if site_sync_status and sites_ids:
-                return sites_ids, site_sync_status
+        try:
+            res = requests.get("https://hq-api.tls.ai/master/sites?withCameras=true", headers=self.request_headers)
+            if res.json() and res.json() != []:
+                sites_ids = [site_id['_id'] for site_id in res.json()]
+                site_sync_status = [sync_status["syncStatus"].get('status') for sync_status in res.json()]
+                if site_sync_status and sites_ids:
+                    return sites_ids, site_sync_status
+        except requests.exceptions.RequestException as err:
+            logger.error(f"Failed to get site error: {err}")
 
     def get_sync_status(self):
         if self.get_sites():
