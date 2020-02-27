@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 
 from Utils.logger import myLogger
 from Utils.utils import wait_for, get_ssh_params
@@ -26,8 +27,6 @@ def wait_for_recog():
 
 def wait_for_add_site(hq_session, config):
     while True:
-        if not hq_session.login():
-            continue
         username, pem_path, password, site_extarnel_ip = get_ssh_params(config)
         feature_toggle_master = consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site_extarnel_ip)
         tasks_logger.info(f"Connect to consul at {site_extarnel_ip} "
@@ -42,14 +41,16 @@ def wait_for_add_site(hq_session, config):
             wait_for(20, "Waiting for api to restart after feature toggle master", tasks_logger)
         if is_service_available(site_extarnel_ip, 3000) and is_service_available(site_extarnel_ip, 16180):
             try:
+                hq_session.login()
                 tasks_logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true'")
                 site_id = hq_session.add_site(site_extarnel_ip)
                 tasks_logger.info(f"successfully added site with internal IP {site_extarnel_ip} "
                                   f"and external IP {site_extarnel_ip}")
                 return site_id
             except:
+                time.sleep(10)
                 tasks_logger.error(f"Failed to add site with with external IP {site_extarnel_ip} "
-                                   f"Attempting to run the automation again")
+                                   f"sleeping 10 seconds and trying again")
 
 
 def delete_site(active_hq_node, hq_session, config):
