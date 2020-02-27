@@ -1,10 +1,9 @@
-import logging
-import sys
-
 import socketio
 from socketio.exceptions import ConnectionError
 import threading
 import time
+
+from Utils.logger import myLogger
 
 sio = socketio.Client()
 
@@ -12,16 +11,7 @@ HOST = "https://hq-api.tls.ai:443/"
 SUBJECTS_IMPORTED = 10
 
 event_count = {}
-
-socket_logger = logging.getLogger("socket_logger")
-socket_logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler = logging.FileHandler("execution.log")
-file_handler.setFormatter(formatter)
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(formatter)
-socket_logger.addHandler(file_handler)
-socket_logger.addHandler(handler)
+socket_logger = myLogger(__name__)
 
 
 def _connect_to_socket_and_wait():

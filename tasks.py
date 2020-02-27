@@ -1,21 +1,17 @@
 import logging
 import sys
 
+from Utils.logger import myLogger
+from Utils.utils import wait_for, get_ssh_params
+from consul import consul_get_one, consul_set
+from site_api import is_service_available
 from socketio_client import verify_recognition_event
 from ssh import disconnect_site_from_hq, delete_pod
 
-tasks_logger = logging.getLogger(__name__)
-tasks_logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler = logging.FileHandler("execution.log")
-file_handler.setFormatter(formatter)
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(formatter)
-tasks_logger.addHandler(file_handler)
-tasks_logger.addHandler(handler)
+tasks_logger = myLogger(__name__)
 
 
-def task_wait_for_recog():
+def wait_for_recog():
     while True:
         try:
             tasks_logger.info("Started waiting for recognition event")
