@@ -1,73 +1,58 @@
 from pprint import pformat
 import time
 
-from Utils.mongodb import MongoDB
-from Utils.logger import Logger
-from Utils.utils import Utils
-from socketio_client import verify_recognition_event
-from ssh import disconnect_site_from_hq, delete_pod
+from Utils.logger import myLogger
+from Utils.utils import Utils, active_ip, calculate_average
 from hq import HQ
-from site_api import play_forensic
+from vm_management import stop_machine, MachineManagement, healthy_cluster, VmMgmt, start_machine
+from tasks import delete_site, wait_for_add_site
+
+RESULT_TIMES = []
+ITERATION_NUMBER = 0
+WAIT_FOR_CLUSTER = 0
 
 
 if __name__ == '__main__':
-    """
-    Config section
-    """
-    Logger = Logger()
-    Utils = Utils()
-    logger = Logger.get_logger()
-    args = Utils.get_args()
+    utils = Utils()
+    logger = myLogger(__name__)
+    args = utils.get_args()
+    utils.load_config(args.config)
     logger.info(f"Starting tests with {args}")
-    mongo_config = Utils.get_config("mongo")
-    logger.info(f"Received config: {pformat(mongo_config)}")
-    env_config = Utils.get_config(args.env)
+    env_config = utils.get_config(args.env)
     logger.info(f"Received config: {pformat(env_config)}")
-    ssh_config = Utils.get_config('ssh')
-    logger.info(f"Received config: {pformat(ssh_config)}")
+    hq_machines = utils.config['hq_machines']
+    machine_mgmt = MachineManagement(VmMgmt())
+    machine_mgmt.ensure_all_machines_started(logger)
+    active_hq_node = active_ip(hq_machines)
+    healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
     hq_session = HQ()
-    mongo_client = MongoDB(mongo_password=mongo_config['hq_pass'],
-                           mongo_user=mongo_config['hq_user'],
-                           mongo_host_port_array=mongo_config['mongo_service_name'])
-    for site in env_config:
-        # Deleting site before trying to add it again
-        logger.info(f"Attempting to delete site: {pformat(site)}")
-        sites_id = mongo_client.get_sites_id()
-        remove_site_from_hq = hq_session.remove_site(sites_id)
-        logger.info(f"Delete site from HQ results: {pformat(remove_site_from_hq)}")
-        delete_pod(env_config[0], ssh_config)
-        # Attempting to add site again after deleting
-        disconnect_site = disconnect_site_from_hq(env_config, ssh_config)
-        logger.info(f"Delete site from site results: {disconnect_site}")
-        feature_toggle_master = hq_session.consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
-        logger.info(f"Connect to consul at {site['site_consul_ip']} "
-                    f"and get FEATURE_TOGGLE_MASTER value = {feature_toggle_master}")
-        if feature_toggle_master == "false":
-            hq_session.consul_set("api-env/FEATURE_TOGGLE_MASTER", "true", site)
-            logger.info(f"Changed FEATURE_TOGGLE_MASTER = 'true', sleeping 4m seconds to let "
-                        f"API restart properly")
-            time.sleep(120)
-            logger.info("Finished sleeping")
-        sites_id = hq_session.add_site(site)
-        logger.info(f"successfully added site with internal IP {site['site_internal_ip']} "
-                    f"and external IP {site['site_extarnel_ip']}")
-        # time_to_sleep = 120
-        # logger.info(f"Sleeping {time_to_sleep} seconds after adding site")
-        # time.sleep(time_to_sleep)
-    sync_status = {"status": ""}
-    while not sync_status['status'] == "synced":
-        time.sleep(10)
-        sync_status = mongo_client.site_sync_status()
-    # time.sleep(180)
-    # hq_session.add_subject()
-    # play_forensic(env_config)
-    # logger.error(f"Site isn't synced ")
-    verify_recognition_event(logger, sleep=60)
-    for site in env_config:
-        sites_id = mongo_client.get_sites_id()
-        logger.info(f"Attempting to delete site: {site}")
-        remove_site_from_hq = hq_session.remove_site(sites_id)
-        disconnect_site = disconnect_site_from_hq(env_config, ssh_config)
-        logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
-        logger.info(f"Delete site from site results: {disconnect_site}")
+    delete_site(active_hq_node, hq_session, utils.config)
+    logger.info("----------------------------------------------------------------")
+    logger.info("                   STARTING MAIN TEST LOOP                      ")
+    logger.info("----------------------------------------------------------------")
+    while True:
+        for machine, ip in hq_machines.items():
+            stop_node = time.time()
+            logger.info(f"Stopping Machine:{machine} IP:{ip} ")
+            stop_machine(machine, WAIT_FOR_CLUSTER, logger)
+            hq_machines[machine] = None
+            # Attempt to add site
+            site_id = wait_for_add_site(hq_session, utils.config)
+            added_site = time.time()
+            time_delta = added_site - stop_node
+            logger.info(f"It took {time_delta} seconds to ADD SITE after stopping node")
+            RESULT_TIMES.append(time_delta)
+            start_machine(machine, WAIT_FOR_CLUSTER, logger)
+            active_hq_node = active_ip(hq_machines)
+            logger.info(f"STARTING CLEAN UP")
+            healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
+            AVERAGE_TIME = calculate_average(RESULT_TIMES)
+            hq_machines[machine] = ip
+            active_hq_node = active_ip(hq_machines)
+            hq_session.login()
+            delete_site(active_hq_node, hq_session, utils.config)
+            logger.info("FINISHED CLEAN UP")
+            logger.info(f"average time from stopping node to add site: {AVERAGE_TIME}")
+            ITERATION_NUMBER += 1
+            logger.info(f"Number of iterations: {ITERATION_NUMBER}")
 
