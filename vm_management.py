@@ -134,7 +134,7 @@ utils.get_args()
 config = utils.load_config(utils.args.config)
 
 
-def start_machine(machine, wait_timeout, logger):
+def start_machine(machine, wait_timeout,):
     machine_mgmt.start(machine)
     vm_management_logger.info(f"Attempting to start machine: {machine} ")
     machine_current_state = machine_mgmt.get(machine)
@@ -143,24 +143,10 @@ def start_machine(machine, wait_timeout, logger):
         vm_management_logger.info(f"sleeping 10 seconds waiting for {machine} to start")
         machine_mgmt.start(machine)
         vm_management_logger.info(f"Attempting to start machine: {machine} ")
-        wait_for(10, "Sleeping 10 seconds waiting for machine to start", logger)
+        wait_for(10, "Sleeping 10 seconds waiting for machine to start", vm_management_logger)
         machine_current_state = machine_mgmt.get(machine)
         vm_management_logger.info(f"Machine status: {machine_current_state}")
-    wait_for(wait_timeout, "Sleeping waiting for machine to start", logger)
-
-
-def running_hq_node(logger):
-    # TODO: Refactor this IMMEDIATELLY IT SUCKS
-    hq_machines = config['hq_machines']
-    vm_mgr = VmMgmt()
-    all_machines = vm_mgr.machine_names()
-    running_node_ips = []
-    for index, machine in enumerate(all_machines):
-        if machine["status"] == "on" and machine['machine_name'] in list(hq_machines.keys()) and len(
-                running_node_ips) < 1:
-            running_node_ips.append(list(hq_machines.values())[index])
-    logger.info(f"Function running_hq_node returned: {running_node_ips[0]}")
-    return running_node_ips[0]
+    wait_for(wait_timeout, "Sleeping waiting for machine to start", vm_management_logger)
 
 
 def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
