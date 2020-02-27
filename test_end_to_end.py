@@ -6,35 +6,14 @@ from pprint import pformat
 from consul import consul_get_one, consul_set
 from Utils.logger import Logger
 from Utils.utils import Utils, wait_for, calculate_average, active_ip
-from ssh import disconnect_site_from_hq, delete_pod
+from ssh import delete_pod
 from hq import HQ
+from tasks import delete_site
 from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, healthy_cluster
 from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
 SYNC_STATUS = None
-
-
-def delete_site(active_hq_node):
-    sites_id = hq_session.get_sites_id()
-    try:
-        remove_site_from_hq = hq_session.remove_site(sites_id)
-        logger.info(f"Delete site from HQ results: {remove_site_from_hq}")
-    except:
-        logger.info(f"Nothing to delete result from get_sites_id: {sites_id}")
-    disconnect_site = disconnect_site_from_hq(site_extarnel_ip=env_config[0]['site_extarnel_ip'],
-                                              username=env_config[0]['ssh']['username'],
-                                              password=env_config[0]['ssh']['password'],
-                                              pem_path=env_config[0]['ssh']['pem_path'])
-    logger.debug(f"Attempting connection to {active_hq_node}")
-    logger.info(f"Attemping to disconnect site from HQ")
-    delete_pod(ip=active_hq_node,
-               username=env_config[0]['ssh']['username'],
-               password=env_config[0]['ssh']['password'],
-               pem_path=env_config[0]['ssh']['pem_path'],
-               pod_name="hq")
-    logger.info(f"Delete site from site results: {disconnect_site}")
-    logger.info("No sites to delete")
 
 
 if __name__ == '__main__':
@@ -60,7 +39,7 @@ if __name__ == '__main__':
     hq_session = HQ()
     hq_session.login()
     if args.remove_site:
-        delete_site(active_hq_node)
+        delete_site(active_hq_node, hq_session, utils.config)
     failed_to_add_site_counter = 0
     iteration_number = 0
     timings = []
@@ -86,7 +65,7 @@ if __name__ == '__main__':
             """Remove the machine we just stopped ip from the active ip list """
             hq_session = HQ()
             hq_session.login()
-            hq_session.get_sites()
+            # hq_session.get_sites()
             for site in env_config:
                 # Attempting to add site again after deletion
                 feature_toggle_master = consul_get_one("api-env/FEATURE_TOGGLE_MASTER", site)
@@ -141,7 +120,7 @@ if __name__ == '__main__':
             timings.append(current_iteration_times)
             if args.remove_site:
                 hq_active_node = active_ip(hq_machines)
-                delete_site(hq_active_node)
+                delete_site(hq_active_node, hq_session, utils.config)
             start_machine(machine, wait_for_cluster, logger)
             """Add back the machine we just started ip to the active ip list """
             hq_machines[machine] = ip
