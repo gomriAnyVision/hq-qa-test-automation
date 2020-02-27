@@ -1,6 +1,9 @@
 import json
 import requests
 
+from Utils.logger import myLogger
+
+logger = myLogger(__name__)
 
 def _upload_video(ip):
     files = {"files": open("./assets/subject_recognition.mp4", "rb")}
@@ -27,8 +30,8 @@ def is_service_available(ip, port):
     while result is None:
         try:
             result = requests.get(f"http://{ip}:{port}", timeout=5)
-            print(result.text)
+            logger.info(f"res from {ip}:{port} - {result.text}")
             return result
         except:
-            print(result)
+            logger.error(f"{result}")
 

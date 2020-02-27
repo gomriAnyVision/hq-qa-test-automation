@@ -7,6 +7,7 @@ from paramiko.ssh_exception import NoValidConnectionsError
 from pprint import pprint
 from googleapiclient import discovery
 
+from Utils.logger import myLogger
 from Utils.utils import Utils, wait_for
 from hq import HQ
 from consul import consul_get_all_nodes_healthcheck, verify_all_consul_members_alive,\
@@ -14,6 +15,8 @@ from consul import consul_get_all_nodes_healthcheck, verify_all_consul_members_a
 from ssh import k8s_cluster_status, hq_pod_healthy, mongo_has_primary, \
     consul_nodes, gravity_cluster_status
 
+
+vm_management_logger = myLogger(__name__)
 
 class MachineManagement(object):
     def __init__(self, machine_mgmt_service):
@@ -133,16 +136,16 @@ config = utils.load_config(utils.args.config)
 
 def start_machine(machine, wait_timeout, logger):
     machine_mgmt.start(machine)
-    logger.info(f"Attempting to start machine: {machine} ")
+    vm_management_logger.info(f"Attempting to start machine: {machine} ")
     machine_current_state = machine_mgmt.get(machine)
-    logger.info(f"Machine status: {machine_current_state}")
+    vm_management_logger.info(f"Machine status: {machine_current_state}")
     while not machine_current_state == "on":
-        logger.info(f"sleeping 10 seconds waiting for {machine} to start")
+        vm_management_logger.info(f"sleeping 10 seconds waiting for {machine} to start")
         machine_mgmt.start(machine)
-        logger.info(f"Attempting to start machine: {machine} ")
+        vm_management_logger.info(f"Attempting to start machine: {machine} ")
         wait_for(10, "Sleeping 10 seconds waiting for machine to start", logger)
         machine_current_state = machine_mgmt.get(machine)
-        logger.info(f"Machine status: {machine_current_state}")
+        vm_management_logger.info(f"Machine status: {machine_current_state}")
     wait_for(wait_timeout, "Sleeping waiting for machine to start", logger)
 
 
@@ -226,20 +229,22 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
             wait_for(10, f"Failed to SSH to: {hq_ip}, waiting 10 seconds ", logger)
 
 
-def stop_machine(machine, wait_timeout, logger):
+def stop_machine(machine, method="stop", ip=None):
     if len(machine_mgmt.list_started_machine()) == 4:
-        logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
+        vm_management_logger.info(f"Checked that 3 HQ nodes are started, stopping one of them")
+        # if method == "stop":
         machine_mgmt.stop(machine)
-        logger.info(f"Stopping machine: {machine}")
+        # elif method == "restart":
+        #     reboot(ip)
+        vm_management_logger.info(f"Stopping machine: {machine}")
         while machine_mgmt.get(machine) == "on" or machine_mgmt.get(machine) == "RUNNING":
             try:
                 machine_mgmt.get(machine)
                 if machine_mgmt.get(machine).status_code == 500:
-                    logger.info(f"The Machine {machine} was already stopped")
+                    vm_management_logger.info(f"The Machine {machine} was already stopped")
                     break
             except:
                 pass
-            logger.info(f"{machine} is still up even though it should have stopped sleeping "
-                        f"for another 10 seconds")
+            vm_management_logger.info(f"The Machine {machine} is still up even though it should have stopped sleeping "
+                                      f"for another 10 seconds")
             wait_for(10, "Sleeping 10 seconds waiting for machine to stop", logger)
-    wait_for(wait_timeout, "Sleeping after stopping node", logger)
