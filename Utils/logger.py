@@ -28,20 +28,3 @@ def myLogger(name):
         loggers[name] = logger
 
         return logger
-
-# class Logger(object):
-#     # TODO: Logger shouldn't create a logger but only add the basic settings the logger,
-#     #  each file should create it's own log
-#     def __init__(self):
-#         self.logger = logging.getLogger()
-#         self.logger.setLevel(logging.INFO or os.environ.get("DEBUGLEVEL"))
-#         formatter = logging.Formatter('%(asctime)s - %(name)s - %(func)s - %(lineno)s - %(levelname)s - %(message)s')
-#         file_handler = logging.FileHandler("execution.log")
-#         handler = logging.StreamHandler(sys.stdout)
-#         file_handler.setFormatter(formatter)
-#         handler.setFormatter(formatter)
-#         self.logger.addHandler(handler)
-#         self.logger.addHandler(file_handler)
-#
-#     def get_logger(self):
-#         return self.logger
