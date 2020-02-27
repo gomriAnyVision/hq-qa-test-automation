@@ -162,8 +162,8 @@ def hq_pod_healthy(logger, ip):
     return True if result else False
 
 
-def mongo_has_primary(logger, ip, timeout=60):
-    command = """ACTIVE_MONGO=$(kubectl get po --selector=app=mongodb-replicaset --no-headers| grep -iv Terminating | awk {'print $1'} | head -1)
+def mongo_has_primary(ip):
+    command = """ACTIVE_MONGO=$(kubectl get po --selector=app=mongodb-replicaset --no-headers| grep -iv Terminating | grep -iv Pending | awk {'print $1'} | head -1)
 echo $(kubectl get secret mongodb-secret --template={{.data.password}} | base64 --decode) | xargs -I '{}' kubectl exec -i $ACTIVE_MONGO -- bash -c "mongo -u root -p '{}' --host mongodb://mongodb-replicaset-0,mongodb-replicaset-1,mongodb-replicaset-2/admin?replicaSet=rs0 --quiet --eval \\\"rs.status()\\\"" | grep -i primary
     """
     ssh = _ssh_connect(hostname=ip)

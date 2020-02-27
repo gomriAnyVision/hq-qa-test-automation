@@ -191,7 +191,7 @@ def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
             if not consul_get_leader:
                 logger.error(f"Consul failed to elect leader consul_elected_leader: {consul_elected_leader}")
                 continue
-            mongo_health = mongo_has_primary(logger, ip=hq_ip)
+            mongo_health = mongo_has_primary(ip=hq_ip)
             logger.info(f"Mongo health: {mongo_health}")
             if not mongo_health:
                 logger.error(f"Failed to find mongo leader mongo_health returned: {mongo_health}")
