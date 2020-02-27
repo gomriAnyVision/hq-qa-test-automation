@@ -112,6 +112,11 @@ def active_ip(machine_list):
             return ip
 
 
+def get_ssh_params(config):
+    username, pem_path, password = config['vm'][0]['ssh'].values()
+    site_extarnel_ip = config['vm'][0]['site_extarnel_ip']
+    return username, pem_path, password, site_extarnel_ip
+
 
 def calculate_average(array):
     return np.mean(array)
