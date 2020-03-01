@@ -4,13 +4,12 @@ import time
 from Utils.logger import myLogger
 from Utils.utils import Utils, active_ip, calculate_average
 from hq import HQ
-from vm_management import stop_machine, MachineManagement, healthy_cluster, VmMgmt, start_machine
+from vm_management import  MachineManagement, healthy_cluster, VmMgmt, start_machine, randomize_stop_reboot_method
 from tasks import delete_site, wait_for_add_site
 
 RESULT_TIMES = []
 ITERATION_NUMBER = 0
 WAIT_FOR_CLUSTER = 0
-
 
 if __name__ == '__main__':
     utils = Utils()
@@ -34,7 +33,7 @@ if __name__ == '__main__':
         for machine, ip in hq_machines.items():
             stop_node = time.time()
             logger.info(f"Stopping Machine:{machine} IP:{ip} ")
-            stop_machine(machine, WAIT_FOR_CLUSTER)
+            randomize_stop_reboot_method(ip, machine)
             hq_machines[machine] = None
             # Attempt to add site
             site_id = wait_for_add_site(hq_session, utils.config)
