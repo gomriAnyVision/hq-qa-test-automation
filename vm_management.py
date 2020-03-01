@@ -138,7 +138,7 @@ utils.get_args()
 config = utils.load_config(utils.args.config)
 
 
-def start_machine(machine, wait_timeout,):
+def start_machine(machine, wait_timeout=0,):
     if len(machine_mgmt.list_started_machine()) < len(machine_mgmt.machine_list()):
         machine_mgmt.start(machine)
         vm_management_logger.info(f"Attempting to start machine: {machine} ")
