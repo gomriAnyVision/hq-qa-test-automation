@@ -40,7 +40,9 @@ class VmMgmt(object):
 
     def start(self, name):
         request_url = "http://{}:8080/vms/{}/status".format(self._get_allocator_ip(), name)
+        vm_management_logger.info(f"Attempting to start machine with name: {name}")
         res = requests.post(request_url, data=json.dumps({"power": "on"}))
+        vm_management_logger.info(f"Start machine response status code: {res.status_code}")
         assert res.status_code == 200
         return res.json()
 
@@ -135,18 +137,21 @@ config = utils.load_config(utils.args.config)
 
 
 def start_machine(machine, wait_timeout,):
-    machine_mgmt.start(machine)
-    vm_management_logger.info(f"Attempting to start machine: {machine} ")
-    machine_current_state = machine_mgmt.get(machine)
-    vm_management_logger.info(f"Machine status: {machine_current_state}")
-    while not machine_current_state == "on":
-        vm_management_logger.info(f"sleeping 10 seconds waiting for {machine} to start")
+    if len(machine_mgmt.list_started_machine()) < len(machine_mgmt.machine_list()):
         machine_mgmt.start(machine)
         vm_management_logger.info(f"Attempting to start machine: {machine} ")
-        wait_for(10, "Sleeping 10 seconds waiting for machine to start", vm_management_logger)
         machine_current_state = machine_mgmt.get(machine)
         vm_management_logger.info(f"Machine status: {machine_current_state}")
-    wait_for(wait_timeout, "Sleeping waiting for machine to start", vm_management_logger)
+        while not machine_current_state == "on":
+            vm_management_logger.info(f"sleeping 10 seconds waiting for {machine} to start")
+            machine_mgmt.start(machine)
+            vm_management_logger.info(f"Attempting to start machine: {machine} ")
+            wait_for(10, "Sleeping 10 seconds waiting for machine to start", vm_management_logger)
+            machine_current_state = machine_mgmt.get(machine)
+            vm_management_logger.info(f"Machine status: {machine_current_state}")
+        wait_for(wait_timeout, "Sleeping waiting for machine to start", vm_management_logger)
+    else:
+        vm_management_logger.info(f"No machines to start")
 
 
 def healthy_cluster(health_status, logger, hq_ip, minimum_nodes_running=2):
