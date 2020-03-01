@@ -1,9 +1,9 @@
 import json
 import logging
-import sys
 
 import paramiko
 
+from Utils.logger import myLogger
 from Utils.utils import Utils
 
 file_path = "scripts/disconnect_site_from_hq.sh"
@@ -12,21 +12,15 @@ script_path = "disconnect_site_from_hq.sh"
 # TODO: Find a way to know if your running on cloud or VM without user input
 
 """
-Stop the paramiko logg from overflowing the logging
+Stops the paramiko log from overflowing the logging
 """
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 
-ssh_logger = logging.getLogger(__name__)
-ssh_logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler = logging.FileHandler("execution.log")
-handler = logging.StreamHandler(sys.stdout)
-file_handler.setFormatter(formatter)
-ssh_logger.addHandler(file_handler)
-ssh_logger.addHandler(handler)
+ssh_logger = myLogger(__name__)
 
 # TODO: Remove duplicated ssh connection code and ssh data parasing
 # TODO: Create Retry soluation for connecting via ssh
+
 
 def disconnect_site_from_hq(**config):
     ssh = paramiko.SSHClient()
@@ -120,16 +114,12 @@ def k8s_cluster_status(ip):
     return running_nodes
 
 
-def consul_elected_leader(logger, **kwargs):
+def consul_elected_leader(logger, ip):
     command = """kubectl exec -ti $(kubectl get pod -l=app=hq | grep -v Terminating | grep -i 2/2 | awk {'print $1'}
 ) -c api-master -- curl http://consul-server-client:8500/v1/status/leader"""
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_config = config['vm'][0]['ssh']
-    ssh.connect(hostname=kwargs['ip'],
-                username=ssh_config['username'],
-                password=ssh_config['password'],
-                key_filename=None if ssh_config['pem_path'] == "" else kwargs['pem_path'])
+    ssh = _ssh_connect(hostname=ip)
     stdin, stdout, stderr = ssh.exec_command(command)
     result = stdout.read().decode('utf-8')
     print(result)
@@ -189,3 +179,23 @@ def consul_nodes(logger, ip):
     else:
         return 0
 
+
+def machine_reboot(ip):
+    ssh_exec_command(ip, cmd="/sbin/reboot -f > /dev/null 2>&1 &",)
+
+
+def ssh_exec_command(ip, cmd):
+    ssh_logger.info(f"Attempting to connect to: {ip}")
+    ssh = _ssh_connect(hostname=ip)
+    ssh_logger.info(f"Successfully connected to: {ip} - \nExecuting command: '{cmd}'")
+    stdin, stdout, stderr = ssh.exec_command(cmd)
+    result = stdout.read()
+    ssh_logger.info(f"Executing command: '{cmd}' on: {ip}, resulted with result: {result}")
+    # TODO: Write some parser for different command results
+    result = result.decode("utf-8")
+    return result if result else False
+
+
+if __name__ == '__main__':
+    command = "/sbin/reboot -f > /dev/null 2>&1 &"
+    ssh_exec_command("192.168.21.222", command)
