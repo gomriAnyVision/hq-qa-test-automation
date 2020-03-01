@@ -39,14 +39,14 @@ if __name__ == '__main__':
         for machine, ip in hq_machines.items():
             stop_node = time.time()
             logger.info(f"Stopping Machine:{machine} IP:{ip} ")
-            stop_machine(machine, WAIT_FOR_CLUSTER, logger)
+            stop_machine(machine)
             hq_machines[machine] = None
             wait_for_recog()
             received_recog = time.time()
             time_delta = received_recog - stop_node
             logger.info(f"It took {time_delta} seconds to get recognition event after stopping ndoe")
             RESULT_TIMES.append(time_delta)
-            start_machine(machine, WAIT_FOR_CLUSTER, logger)
+            start_machine(machine, WAIT_FOR_CLUSTER)
             active_hq_node = active_ip(hq_machines)
             healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
             AVERAGE_TIME = calculate_average(RESULT_TIMES)

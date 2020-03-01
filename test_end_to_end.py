@@ -53,7 +53,7 @@ if __name__ == '__main__':
             active_hq_node = active_ip(hq_machines)
             healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
             logger.info(f"Stop machine IP:{ip}, Name: {machine}")
-            stop_machine(machine, wait_for_cluster, logger)
+            stop_machine(machine)
             hq_machines[machine] = None
             active_hq_node = active_ip(hq_machines)
             healthy_cluster("Healthy", logger, active_hq_node)
@@ -89,7 +89,7 @@ if __name__ == '__main__':
                         logger.error(f"Failed to add site with with external IP {site['site_extarnel_ip']} "
                                      f"Attempting to run the automation again")
                         if args.stop_nodes:
-                            start_machine(machine, wait_for_cluster, logger)
+                            start_machine(machine)
                         """Add back the machine we just started ip to the active ip list """
                         hq_machines[machine] = ip
                         failed_to_add_site_counter += 1
@@ -120,7 +120,7 @@ if __name__ == '__main__':
             if args.remove_site:
                 hq_active_node = active_ip(hq_machines)
                 delete_site(hq_active_node, hq_session, utils.config)
-            start_machine(machine, wait_for_cluster, logger)
+            start_machine(machine)
             """Add back the machine we just started ip to the active ip list """
             hq_machines[machine] = ip
             iteration_number += 1
