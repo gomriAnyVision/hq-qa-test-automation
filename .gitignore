@@ -3,3 +3,4 @@
 /buildout_env/
 /.idea/
 /config_20_58.json
+/Pipfile.lock

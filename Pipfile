@@ -8,6 +8,13 @@ verify_ssl = true
 [packages]
 pyyaml = "*"
 munch = "*"
+requests = "*"
+numpy = "*"
+paramiko = "*"
+socketio = "*"
+python-socketio = "*"
+google-api-python-client = "*"
+
 
 [requires]
 python_version = "3.6"
