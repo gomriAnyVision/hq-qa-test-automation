@@ -6,11 +6,6 @@
         "hq_api_url": "",
         "hq_url": "",
         "site_consul_ip": "",
-        "mongo_ip": "",
-        "mongo_pass": "",
-        "mongo_replica_1":"",
-        "mongo_replica_2": "",
-        "mongo_replica_3": "",
         "ssh": {
             "username": "",
             "pem_path": "",
@@ -18,11 +13,11 @@
     }
     }],
     "vm": [{
-        "site_internal_ip": "192.168.122.189",
-        "site_extarnel_ip": "192.168.122.189",
+        "site_internal_ip": "192.168.122.190",
+        "site_extarnel_ip": "192.168.122.190",
         "hq_api_url": "hq-api.tls.ai",
         "hq_url": "hq.tls.ai",
-        "site_consul_ip": "192.168.122.189",
+        "site_consul_ip": "192.168.122.190",
         "ssh": {
             "username": "root",
             "pem_path": "",
@@ -32,19 +27,9 @@
     "allocator": {
         "ip": "192.168.20.58"
     },
-    "mongo": {
-        "hq_pass": "M2Q1MDUzYjYyOGM4N2JhN2JmYjM1MTMz",
-        "hq_user": "root",
-        "mongo_service_name": "mongodb.replicaset-0.mongodb-replicaset,mongodb.replicaset-1.mongodb-replicaset,mongodb.replicaset-2.mongodb-replicaset",
-        "mongo_zero_ip": "34.83.206.190",
-        "mongo_one_ip": "104.198.104.178",
-        "mongo_two_ip": "35.199.172.249",
-        "site_pass": "",
-        "site_ip": ""
-    },
     "hq_machines": {
-        "server5-vm-0": "192.168.122.38",
-        "server5-vm-2": "192.168.122.191",
-        "server5-vm-3": "192.168.122.188"
+        "server5-vm-0": "192.168.122.186",
+        "server5-vm-1": "192.168.122.187",
+        "server5-vm-2": "192.168.122.191"
     }
 }
