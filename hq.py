@@ -98,14 +98,14 @@ class HQ(object):
         else:
             return
 
-    def add_site(self, ip):
+    def add_site(self, site):
         self.request_headers['Content-Type'] = "application/json; charset=utf-8"
         payload = {
-            "host": f"http://{ip}:3000",
-            "rmqConnString": f"amqp://{ip}:5672",
-            "syncServiceUri": f"http://{ip}:16180",
-            "title": f"site {ip}",
-            "storageUri": f"https://hq.tls.ai/r/{ip}"
+            "host": f"http://{site['site_extarnel_ip']}:3000",
+            "rmqConnString": f"amqp://{site['site_extarnel_ip']}:5672",
+            "syncServiceUri": f"http://{site['site_extarnel_ip']}:16180",
+            "title": f"site {site['site_extarnel_ip']}",
+            "storageUri": f"https://hq.tls.ai/r/{site['site_extarnel_ip']}"
         }
         logger.debug(f"Add site request payload: {pformat(payload)}")
         res = requests.post("https://hq-api.tls.ai/master/sites", headers=self.request_headers,
