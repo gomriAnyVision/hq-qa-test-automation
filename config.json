@@ -1,0 +1,40 @@
+{
+    "cloud": [{
+        "site_internal_ip": "",
+        "site_extarnel_ip": "",
+        "hq_ip": "",
+        "hq_api_url": "",
+        "hq_url": "",
+        "site_consul_ip": "",
+        "mongo_ip": "",
+        "mongo_pass": "",
+        "mongo_replica_1":"",
+        "mongo_replica_2": "",
+        "mongo_replica_3": "",
+        "ssh": {
+            "username": "",
+            "pem_path": "",
+            "password": ""
+    }
+    }],
+    "vm": [{
+        "site_internal_ip": "192.168.122.186",
+        "site_extarnel_ip": "192.168.122.186",
+        "hq_api_url": "hq-api.tls.ai",
+        "hq_url": "hq.tls.ai",
+        "site_consul_ip": "192.168.122.186",
+        "ssh": {
+            "username": "",
+            "pem_path": "",
+            "password": ""
+    }
+    }],
+    "allocator": {
+        "ip": "192.168.20.58"
+    },
+    "hq_machines": {
+        "server5-vm-0": "192.168.122.38",
+        "server5-vm-1": "192.168.122.190",
+        "server5-vm-2": "192.168.122.187"
+    }
+}
