@@ -32,16 +32,6 @@
     "allocator": {
         "ip": "192.168.20.58"
     },
-    "mongo": {
-        "hq_pass": "",
-        "hq_user": "root",
-        "mongo_service_name": "mongodb.replicaset-0.mongodb-replicaset,mongodb.replicaset-1.mongodb-replicaset,mongodb.replicaset-2.mongodb-replicaset",
-        "mongo_zero_ip": "34.83.206.190",
-        "mongo_one_ip": "104.198.104.178",
-        "mongo_two_ip": "35.199.172.249",
-        "site_pass": "",
-        "site_ip": ""
-    },
     "hq_machines": {
         "server5-vm-0": "192.168.122.38",
         "server5-vm-1": "192.168.122.190",
