@@ -9,7 +9,8 @@ from Utils.utils import Utils, wait_for, calculate_average, active_ip
 from ssh import delete_pod
 from hq import HQ
 from tasks import delete_site
-from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, healthy_cluster
+from vm_management import MachineManagement, VmMgmt, stop_machine, start_machine, healthy_cluster, \
+    randomize_stop_reboot_method
 from socketio_client import verify_recognition_event
 from site_api import play_forensic, is_service_available
 
@@ -53,7 +54,7 @@ if __name__ == '__main__':
             active_hq_node = active_ip(hq_machines)
             healthy_cluster("Healthy", logger, active_hq_node, minimum_nodes_running=3)
             logger.info(f"Stop machine IP:{ip}, Name: {machine}")
-            stop_machine(machine)
+            randomize_stop_reboot_method(ip, machine)
             hq_machines[machine] = None
             active_hq_node = active_ip(hq_machines)
             healthy_cluster("Healthy", logger, active_hq_node)
@@ -107,7 +108,7 @@ if __name__ == '__main__':
                 play_forensic(env_config[0]['site_extarnel_ip'])
                 verify_recognition_event(sleep=60)
             except:
-                logger.error("Failed to get event from HQ")
+                logger.error("Failed to get recognition event from HQ")
             time_until_recognitions = time.time()
             hc_stop_to_recog = time_until_recognitions - before_health_check
             logger.info(f"Time from stopping node to the getting recognition event:"
