@@ -4,14 +4,17 @@ import requests
 
 def consul_set(key, value, ip):
     data = value
-    res = requests.put(f"http://{ip['site_consul_ip']}/v1/kv/{key}", data=data,
+    if isinstance(ip, dict):
+        ip = ip['site_consul_ip']
+    res = requests.put(f"http://{ip}/v1/kv/{key}", data=data,
                        auth=("admin", "Passw0rd123"))
     return res.json()
 
 
 def consul_get_one(key, ip):
-    res = requests.get(f"http://{ip['site_consul_ip']}/v1/kv/{key}",
-                       auth=("admin", "Passw0rd123"))
+    if isinstance(ip, dict):
+        ip = ip['site_consul_ip']
+    res = requests.get(f"http://{ip}/v1/kv/{key}", auth=("admin", "Passw0rd123"))
     decoded_res = base64.b64decode(res.json()[0]['Value']).decode("utf-8")
     return decoded_res
 
